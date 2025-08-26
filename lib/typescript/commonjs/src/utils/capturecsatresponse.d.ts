@@ -1,0 +1,2 @@
+export declare const CaptureCsatResponse: (csatId: string, userId: string, rating: number, feedbackOption?: string, additionalComments?: string) => Promise<void>;
+//# sourceMappingURL=capturecsatresponse.d.ts.map
