@@ -200,8 +200,8 @@ class AppStorys {
     return AppStorys.instance;
   }
 
-  public async trackScreen(app_id: string, screen_name: string) {
-    this.campaigns = await trackScreen(app_id, screen_name);
+  public async trackScreen(user_id: string, screen_name: string) {
+    this.campaigns = await trackScreen(user_id, screen_name);
     return this.campaigns;
   }
   public async trackUser(user_id: string, attributes?: any) {
@@ -232,7 +232,7 @@ class AppStorys {
   // Function to initialize appstorys
   public async initialize(app_id: string, account_id: string, user_id: string, screen_name: string, attributes?: any,) {
     await verifyAccount(account_id, app_id);
-    this.campaigns =  await trackScreen(app_id, screen_name);
+    this.campaigns = await trackScreen(user_id, screen_name);
     this.data = await verifyUser(user_id, this.campaigns, attributes);
     return this.data;
   }

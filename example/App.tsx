@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Button, Text, View} from "react-native";
-import {AppStorys, Banner, UserData} from '@appstorys/appstorys-react-native';
+import {AppStorys, UserData} from '@appstorys/appstorys-react-native';
 
 export default function App() {
   const [data, setData] = useState<UserData>();
@@ -15,10 +15,11 @@ export default function App() {
       "9e1b21a2-350a-4592-918c-2a19a73f249a",
       "4350bf8e-0c9a-46bd-b953-abb65ab21d11",
       "nameisprem",
-      "Home Screen RN",
+      "Home Screen",
       // attributes,
     );
     if (data) {
+      console.log(data);
       setData(data);
     }
   }
@@ -28,7 +29,7 @@ export default function App() {
       <Text>Testing AppStorys SDK</Text>
       <Button title="Track Screen"/>
 
-      <Banner campaigns={data!.campaigns} user_id={data!.user_id}/>
+      {/*<Banner campaigns={data!.campaigns} user_id={data!.user_id}/>*/}
     </View>
   );
 }

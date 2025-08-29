@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "@appstorys/appstorys-react-native": {
-      "signature": "3aee95416ee4996ff38ab332db33c496",
+      "signature": "312495dc972cd2b22ac2722512380c6d",
       "file": true
     }
   }
