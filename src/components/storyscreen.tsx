@@ -2,24 +2,19 @@ import {
   Animated,
   Dimensions,
   Image,
+  Linking,
+  PanResponder,
+  Platform,
+  Share,
   Text,
   TouchableOpacity,
   View,
-  Linking,
-  Share,
-  PanResponder,
-  Platform,
 } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import {SetStateAction, useEffect, useRef, useState} from "react";
 import Video from "react-native-video";
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from "@react-navigation/native";
-import { UserActionTrack } from "../utils/trackuseraction";
-import { CampaignStory } from "../sdk";
+import {NavigationProp, RouteProp, useNavigation, useRoute,} from "@react-navigation/native";
+import {UserActionTrack} from "../utils/trackuseraction";
+import {CampaignStory} from "../sdk";
 
 type StorySlide = CampaignStory["details"][0]["slides"][0] & {
   finish: number;
@@ -51,8 +46,8 @@ const shareImage = require("../assets/images/share.png");
 export const StoryScreen = () => {
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { params } = useRoute<RouteProp<RootStackParamList, "StoryScreen">>();
-  const { height, width } = Dimensions.get("window");
+  const {params} = useRoute<RouteProp<RootStackParamList, "StoryScreen">>();
+  const {height, width} = Dimensions.get("window");
 
   const [content, setContent] = useState<StorySlide[]>([]);
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
@@ -132,7 +127,7 @@ export const StoryScreen = () => {
       toValue: 1,
       duration: duration,
       useNativeDriver: false,
-    }).start(({ finished }) => {
+    }).start(({finished}) => {
       if (finished) {
         next();
       }
@@ -204,13 +199,13 @@ export const StoryScreen = () => {
 
   if (!params) {
     return (
-      <View style={{ backgroundColor: "black" }}>
-        <Text style={{ color: "white", fontSize: 14 }}>No data available</Text>
+      <View style={{backgroundColor: "black"}}>
+        <Text style={{color: "white", fontSize: 14}}>No data available</Text>
       </View>
     );
   }
 
-  const { user_id } = params;
+  const {user_id} = params;
 
   return (
     <View
@@ -227,7 +222,7 @@ export const StoryScreen = () => {
         typeof content[current]?.image === "string" &&
         content[current]?.image !== "" && (
           <Image
-            source={{ uri: content[current]?.image! }}
+            source={{uri: content[current]?.image!}}
             onLoadEnd={() => {
               progress.setValue(0);
               start(5000); // Image lasts 5 seconds
@@ -245,14 +240,15 @@ export const StoryScreen = () => {
         typeof content[current]?.video === "string" &&
         content[current]?.video !== "" && (
           <Video
-            source={{ uri: content[current]?.video! }}
-            style={{ height: "100%", width: width }}
+            source={{uri: content[current]?.video!}}
+            style={{height: "100%", width: width}}
             resizeMode="cover"
-            muted={mute ? true : false}
-            onLoad={(data) => {
+            muted={mute}
+            onLoad={(data: { duration: SetStateAction<number>; }) => {
               console.log("Video loaded with duration:", data.duration);
               setVideoDuration(data.duration);
               progress.setValue(0);
+              // @ts-ignore
               start(data.duration * 1000); // Start based on video duration
             }}
             onError={(error) => console.error("Video error:", error)}

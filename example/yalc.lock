@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "@appstorys/appstorys-react-native": {
+      "signature": "3aee95416ee4996ff38ab332db33c496",
+      "file": true
+    }
+  }
+}
