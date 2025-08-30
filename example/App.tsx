@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Button, Text, View} from "react-native";
-import {AppStorys, UserData} from '@appstorys/appstorys-react-native';
+import {AppStorys, Banner, UserData} from '@appstorys/appstorys-react-native';
 
 export default function App() {
   const [data, setData] = useState<UserData>();
@@ -28,8 +28,11 @@ export default function App() {
     <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
       <Text>Testing AppStorys SDK</Text>
       <Button title="Track Screen"/>
-
-      {/*<Banner campaigns={data!.campaigns} user_id={data!.user_id}/>*/}
+      {
+        data?.campaigns && (
+          <Banner campaigns={data.campaigns} user_id={data.user_id}/>
+        )
+      }
     </View>
   );
 }

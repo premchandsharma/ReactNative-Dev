@@ -30,24 +30,24 @@ class WebSocketClient extends EventEmitter {
       });
 
       this.webSocket.onopen = () => {
-        console.log(`${this.TAG}: WebSocket connection opened`);
+        // console.log(`${this.TAG}: WebSocket connection opened`);
         this.isConnected = true;
         this.emit('open');
       };
 
       this.webSocket.onmessage = (event) => {
-        console.log(`${this.TAG}: WebSocket message received: ${event.data}`);
+        // console.log(`${this.TAG}: WebSocket message received: ${event.data}`);
         this.emit('message', event.data);
       };
 
       this.webSocket.onclose = (event) => {
-        console.log(`${this.TAG}: WebSocket closed: ${event.code} ${event.reason}`);
+        // console.log(`${this.TAG}: WebSocket closed: ${event.code} ${event.reason}`);
         this.isConnected = false;
         this.emit('close', event);
       };
 
       this.webSocket.onerror = (event) => {
-        console.error(`${this.TAG}: WebSocket error:`, event);
+        // console.error(`${this.TAG}: WebSocket error:`, event);
         this.isConnected = false;
         this.emit('error', event);
       };
@@ -70,7 +70,7 @@ class WebSocketClient extends EventEmitter {
         this.webSocket = null;
       }
       this.isConnected = false;
-      console.log(`${this.TAG}: WebSocket disconnected`);
+      // console.log(`${this.TAG}: WebSocket disconnected`);
     } catch (error) {
       console.error(`${this.TAG}: Error disconnecting WebSocket:`, error);
     }
