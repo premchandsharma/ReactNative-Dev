@@ -1,20 +1,20 @@
-import { trackUser } from './utils/trackuser';
-import { UserActionTrack } from './utils/trackuseraction';
-import { verifyUser } from './utils/verifyuser';
-import { verifyAccount } from './utils/verifyaccount';
-import { trackScreen } from './utils/screen';
+import {trackUser} from './utils/trackuser';
+import {UserActionTrack} from './utils/trackuseraction';
+import {verifyUser} from './utils/verifyuser';
+import {verifyAccount} from './utils/verifyaccount';
+import {trackScreen} from './utils/screen';
 import Banner from './components/banner';
 import Floater from './components/floater';
 import Pip from './components/pip';
-import { PipScreen } from './components/pipscreen';
+import {PipScreen} from './components/pipscreen';
 import Stories from './components/stories';
-import { StoryScreen } from './components/storyscreen';
+import {StoryScreen} from './components/storyscreen';
 // import Tooltip from './components/Tooltip';
 import Survey from './components/Survey';
 import Csat from './components/Csat';
 import Widgets from './components/Widgets';
-import { CaptureSurveyResponse } from './utils/capturesurveyresponse';
-import { CaptureCsatResponse } from './utils/capturecsatresponse';
+import {CaptureSurveyResponse} from './utils/capturesurveyresponse';
+import {CaptureCsatResponse} from './utils/capturecsatresponse';
 
 export type StoryGroup = {
   ringColor: string;
@@ -179,7 +179,7 @@ export type CampaignWidgets = {
 
 export type UserData = {
   campaigns: Array<CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
-    // CampaignSpotlight | 
+    // CampaignSpotlight |
     CampaignCsat | CampaignWidgets>;
   user_id: string;
 }
@@ -200,8 +200,8 @@ class AppStorys {
     return AppStorys.instance;
   }
 
-  public async trackScreen(app_id: string, screen_name: string) {
-    this.campaigns = await trackScreen(app_id, screen_name);
+  public async trackScreen(user_id: string, screen_name: string) {
+    this.campaigns = await trackScreen(user_id, screen_name);
     return this.campaigns;
   }
   public async trackUser(user_id: string, attributes?: any) {
@@ -224,16 +224,15 @@ class AppStorys {
     return await CaptureSurveyResponse(surveyId, userId, responseOptions, comment);
   }
 
-  public async CaptureCsatResponse(userId: string, csatId: string,rating: number , feedbackOption?: string, 
+  public async CaptureCsatResponse(userId: string, csatId: string, rating: number, feedbackOption?: string,
     additionalComments?: string,) {
     return await CaptureCsatResponse(csatId, userId, rating, feedbackOption, additionalComments, );
   }
 
   // Function to initialize appstorys
   public async initialize(app_id: string, account_id: string, user_id: string, screen_name: string, attributes?: any,) {
-
     await verifyAccount(account_id, app_id);
-    this.campaigns =  await trackScreen(app_id, screen_name);
+    this.campaigns = await trackScreen(user_id, screen_name);
     this.data = await verifyUser(user_id, this.campaigns, attributes);
     return this.data;
   }
