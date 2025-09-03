@@ -1,48 +1,27 @@
-import React, { useState, useRef, useEffect } from "react";
-import {
-  View,
-  Dimensions,
-  Animated,
-  Image,
-  Platform,
-} from "react-native";
+import {useEffect, useRef, useState} from "react";
+import {Animated, Dimensions, Image, Platform, View,} from "react-native";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
   PanGestureHandlerStateChangeEvent,
+  Pressable,
   State,
-  TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
 import Video from "react-native-video";
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { UserActionTrack } from "../utils/trackuseraction";
-import { subscribeToPipVisibility } from '../utils/pipState';
-import { CampaignPip, UserData } from "../sdk";
-import RNFS from "react-native-fs";
-import { useHeaderHeight } from '@react-navigation/elements';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {useBottomTabBarHeight} from "@react-navigation/bottom-tabs";
+import {subscribeToPipVisibility} from '../../domain/actions/pipState';
+import {useHeaderHeight} from '@react-navigation/elements';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
+import useCampaigns from "../../domain/actions/useCampaigns";
+import {CampaignPip} from "../../domain/sdk/types";
+import trackUserAction from "../../domain/actions/trackUserAction";
+import checkForImage from "../../domain/actions/checkForImage";
+import {PipScreenRootStackParamList} from "./types";
 
-const { width, height } = Dimensions.get("window");
+export default function Pip() {
+  const {width, height} = Dimensions.get("window");
 
-export type PipProps = {
-} & UserData;
-
-type RootStackParamList = {
-  PipScreen: {
-    user_id: string;
-    id: string;
-    link: string | null;
-    button_text: string | null;
-    largeVideoUrl: string;
-  };
-};
-
-const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
-
-  const data = campaigns.find(
-    (val) => val.campaign_type === "PIP",
-  ) as CampaignPip;
-  // let pipBottomValue = height > 700 ? (Platform.OS === "ios" ? 220 : 220) : 220;
+  const data = useCampaigns<CampaignPip>("PIP");
 
   useEffect(() => {
     const unsubscribe = subscribeToPipVisibility((isVisible) => {
@@ -54,15 +33,15 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
     };
   }, []);
 
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NavigationProp<PipScreenRootStackParamList>>();
   let pipBottomValue = data != null && data.details.height != null ? data.details.height + 20 : 220;
 
 
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
 
-  var PIP_WIDTH = data != null && data.details.width != null ? data.details.width : 140;
-  var PIP_HEIGHT = data != null && data.details.height != null ? data.details.height : 200;
+  let PIP_WIDTH = data != null && data.details.width != null ? data.details.width : 140;
+  let PIP_HEIGHT = data != null && data.details.height != null ? data.details.height : 200;
 
   // Calculate the maximum x and y positions to keep PIP within screen bounds
   const MAX_X = width - PIP_WIDTH - 20;
@@ -90,75 +69,16 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
   ).current;
 
   useEffect(() => {
-    pan.setOffset({ x: initialX, y: initialY });
+    pan.setOffset({x: initialX, y: initialY});
   }, [])
-
-
-
-  const downloadVideo = async (url: string, filename: string) => {
-    try {
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl: url,
-        toFile: `${RNFS.DocumentDirectoryPath}/${filename}`,
-      }).promise;
-
-      if (downloadResult.statusCode === 200) {
-        console.log("Downloaded successfully");
-      } else {
-        console.log("Download failed");
-      }
-    } catch (error) {
-      console.error("Error in downloading video:", error);
-    }
-  };
-
-  const checkAndDownloadSmallVideo = async (url: string) => {
-    try {
-      const filename = url.split("/").pop()?.split("?")[0] as string;
-
-      const fileExists = await RNFS.exists(
-        `${RNFS.DocumentDirectoryPath}/${filename}`,
-      );
-
-      if (!fileExists) {
-        await downloadVideo(url, filename);
-        setSmallVideoPath(`${RNFS.DocumentDirectoryPath}/${filename}`);
-      } else {
-        setSmallVideoPath(`${RNFS.DocumentDirectoryPath}/${filename}`);
-      }
-    } catch (error) {
-      console.error("Error in checking and downloading video:", error);
-    }
-  };
-  const checkAndDownloadLargeVideo = async (url: string) => {
-    try {
-      const filename = url.split("/").pop()?.split("?")[0] as string;
-
-      const fileExists = await RNFS.exists(
-        `${RNFS.DocumentDirectoryPath}/${filename}`,
-      );
-
-      if (!fileExists) {
-        await downloadVideo(url, filename);
-        setLargeVideoPath(`${RNFS.DocumentDirectoryPath}/${filename}`);
-      } else {
-        setLargeVideoPath(`${RNFS.DocumentDirectoryPath}/${filename}`);
-      }
-    } catch (error) {
-      console.error("Error in checking and downloading video:", error);
-    }
-  };
 
   useEffect(() => {
     if (data && data.id) {
-      UserActionTrack(user_id, data.id, "IMP");
-      const smallVideoUrl = data.details.small_video;
-      checkAndDownloadSmallVideo(smallVideoUrl);
-
-      const largeVideoUrl = data.details.large_video;
-      checkAndDownloadLargeVideo(largeVideoUrl);
+      void trackUserAction(data.id, "IMP");
+      void checkForImage(data.details.small_video, setSmallVideoPath);
+      void checkForImage(data.details.large_video, setLargeVideoPath);
     }
-  }, [user_id]);
+  }, [data]);
 
   const closePip = () => {
     setPipVisible(false);
@@ -169,19 +89,18 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
   }
 
   function expandPip() {
-    if (data.details.large_video != null || data.details.large_video != "") {
+    if (data && (data.details.large_video != null || data.details.large_video != "")) {
       closePip();
       const link = data.details.link;
       navigation.navigate('PipScreen', {
-        user_id,
         id: data.id,
         link,
         button_text: data.details.button_text,
         largeVideoUrl: `file://${largeVideoPath}`,
       });
-      UserActionTrack(user_id, data.id, "IMP");
+      void trackUserAction(data.id, "IMP");
     }
-  };
+  }
 
   const constrainPosition = (x: number, y: number) => {
     return {
@@ -199,17 +118,17 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
         },
       },
     ],
-    { useNativeDriver: true },
+    {useNativeDriver: true},
   );
 
   const onHandlerStateChange = (event: PanGestureHandlerStateChangeEvent) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      const { absoluteX, absoluteY, x, y, } = event.nativeEvent;
+      const {absoluteX, absoluteY, x, y,} = event.nativeEvent;
 
       const constrainedPosition = constrainPosition(absoluteX - x, absoluteY - y);
 
       pan.setOffset(constrainedPosition);
-      pan.setValue({ x: 0, y: 0 });
+      pan.setValue({x: 0, y: 0});
 
     }
   };
@@ -219,7 +138,7 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
       position: 'absolute',
       zIndex: 999998,
     }}>
-      {data && isPipVisible &&  (
+      {data && isPipVisible && (
         <PanGestureHandler
           onGestureEvent={onPanGestureEvent}
           onHandlerStateChange={onHandlerStateChange}
@@ -247,13 +166,13 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
               }
             }
           >
-            <View onTouchEnd={expandPip} style={{ flex: 1 }}>
+            <View onTouchEnd={expandPip} style={{flex: 1}}>
               {data.details.small_video &&
                 data.details.large_video && (
                   <Video
                     repeat={true}
                     resizeMode="contain"
-                    muted={mute ? true : false}
+                    muted={mute}
                     source={{
                       uri: `file://${smallVideoPath}`,
                     }}
@@ -270,7 +189,7 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
                 )}
             </View>
 
-            <TouchableWithoutFeedback
+            <Pressable
               onPress={closePip}
               style={{
                 padding: 7,
@@ -285,15 +204,15 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
               }}
             >
               <Image
-                source={require("../assets/images/close.png")}
+                source={require("../../assets/images/close.png")}
                 style={{
                   height: 9,
                   width: 9,
                 }}
               />
-            </TouchableWithoutFeedback>
+            </Pressable>
 
-            <TouchableWithoutFeedback
+            <Pressable
               onPress={speaker}
               style={{
                 padding: 5,
@@ -306,16 +225,16 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
               }}
             >
               <Image
-                source={mute ? require("../assets/images/mute.png") : require("../assets/images/volume.png")}
+                source={mute ? require("../../assets/images/mute.png") : require("../../assets/images/volume.png")}
                 style={{
                   height: 16,
                   width: 16,
                 }}
               />
-            </TouchableWithoutFeedback>
+            </Pressable>
 
             {data.details.large_video != null && data.details.large_video != "" &&
-              <TouchableWithoutFeedback
+              <Pressable
                 onPress={expandPip}
                 style={{
                   padding: 7,
@@ -330,13 +249,13 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
                 }}
               >
                 <Image
-                  source={require("../assets/images/enlarge.png")}
+                  source={require("../../assets/images/enlarge.png")}
                   style={{
                     height: 10,
                     width: 10,
                   }}
                 />
-              </TouchableWithoutFeedback>}
+              </Pressable>}
 
 
           </Animated.View>
@@ -345,5 +264,3 @@ const Pip: React.FC<PipProps> = ({ campaigns, user_id }) => {
     </GestureHandlerRootView>
   );
 };
-
-export default Pip;

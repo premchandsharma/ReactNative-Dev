@@ -13,43 +13,20 @@ import {
 import {SetStateAction, useEffect, useRef, useState} from "react";
 import Video from "react-native-video";
 import {NavigationProp, RouteProp, useNavigation, useRoute,} from "@react-navigation/native";
-import {UserActionTrack} from "../utils/trackuseraction";
-import {CampaignStory} from "../sdk";
+import {StoriesScreenRootStackParamList} from "./types";
+import trackUserAction from "../../domain/actions/trackUserAction";
+import {CampaignStorySlide} from "../../domain/sdk/types";
 
-type StorySlide = CampaignStory["details"][0]["slides"][0] & {
-  finish: number;
-};
+const closeImage = require("../../assets/images/close.png");
+const shareImage = require("../../assets/images/share.png");
 
-type StoryGroup = CampaignStory["details"][0] & {
-  slides: StorySlide[];
-};
+export default function StoriesScreen() {
 
-export interface StoriesProps {
-  data: {
-    id: string;
-    details: StoryGroup[];
-  };
-}
-
-type RootStackParamList = {
-  StoryScreen: {
-    storySlideData: CampaignStory;
-    storyCampaignId: string;
-    user_id: string;
-    initialGroupIndex: number; // Add this to track which group to start with
-  };
-};
-
-const closeImage = require("../assets/images/close.png");
-const shareImage = require("../assets/images/share.png");
-
-export const StoryScreen = () => {
-
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const {params} = useRoute<RouteProp<RootStackParamList, "StoryScreen">>();
+  const navigation = useNavigation<NavigationProp<StoriesScreenRootStackParamList>>();
+  const {params} = useRoute<RouteProp<StoriesScreenRootStackParamList, "StoryScreen">>();
   const {height, width} = Dimensions.get("window");
 
-  const [content, setContent] = useState<StorySlide[]>([]);
+  const [content, setContent] = useState<CampaignStorySlide[]>([]);
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
   const [current, setCurrent] = useState(0);
   const [currentStorySlide, setCurrentStorySlide] = useState(0);
@@ -113,8 +90,7 @@ export const StoryScreen = () => {
       params.storySlideData.details[currentGroupIndex].slides[currentStorySlide] &&
       params.storySlideData.details[currentGroupIndex].slides[currentStorySlide].id) {
       if (params?.storyCampaignId) {
-        UserActionTrack(
-          params.user_id,
+        void trackUserAction(
           params.storyCampaignId,
           "IMP",
           params.storySlideData.details[currentGroupIndex].slides[currentStorySlide]?.id ?? "",
@@ -204,8 +180,6 @@ export const StoryScreen = () => {
       </View>
     );
   }
-
-  const {user_id} = params;
 
   return (
     <View
@@ -326,7 +300,7 @@ export const StoryScreen = () => {
               params.storySlideData.details[currentGroupIndex] &&
               params.storySlideData.details[currentGroupIndex].thumbnail && (
                 <Image
-                  source={{ uri: params?.storySlideData?.details[currentGroupIndex].thumbnail }}
+                  source={{uri: params?.storySlideData?.details[currentGroupIndex].thumbnail}}
                   style={{
                     width: 40,
                     height: 40,
@@ -363,7 +337,7 @@ export const StoryScreen = () => {
               content[current]?.video &&
               <TouchableOpacity onPress={speaker} style={{}}>
                 <Image
-                  source={mute ? require("../assets/images/mute.png") : require("../assets/images/volume.png")}
+                  source={mute ? require("../../assets/images/mute.png") : require("../../assets/images/volume.png")}
                   style={{
                     height: 24,
                     width: 24,
@@ -417,11 +391,11 @@ export const StoryScreen = () => {
         }}
       >
         <TouchableOpacity
-          style={{ width: "50%", height: "100%" }}
+          style={{width: "50%", height: "100%"}}
           onPress={previous}
         />
         <TouchableOpacity
-          style={{ width: "50%", height: "100%" }}
+          style={{width: "50%", height: "100%"}}
           onPress={next}
         />
       </View>
@@ -444,11 +418,10 @@ export const StoryScreen = () => {
               activeOpacity={1}
               onPress={() => {
                 if (typeof content[current]?.link === "string") {
-                  Linking.openURL(content[current]?.link!);
+                  void Linking.openURL(content[current]?.link!);
                 }
                 if (params && params.storyCampaignId) {
-                  UserActionTrack(
-                    user_id,
+                  void trackUserAction(
                     params.storyCampaignId,
                     "CLK",
                     content[current]?.id!,

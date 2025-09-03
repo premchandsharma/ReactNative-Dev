@@ -1,20 +1,25 @@
-import Banner from './components/banner';
-import Floater from './components/floater';
-import Pip from './components/pip';
-import { PipScreen } from './components/pipscreen';
-import Stories from './components/stories';
-import { StoryScreen } from './components/storyscreen';
+import Banner from './components/Banner';
 import Survey from './components/Survey';
 // import Tooltip from './components/Tooltip';
 import Csat from './components/Csat';
 import Widgets from './components/Widgets';
 
-import AppStorys, { StoryGroup, UserData } from './sdk';
+import AppStorys from './domain/sdk';
+import {CampaignStoryGroup} from "./domain/sdk/types";
+import Floater from './components/Floater';
+import Pip from './components/pip';
+import Stories from './components/stories';
+import StoriesScreen from './components/stories/screen';
+import PipScreen from './components/pip/screen';
+import CaptureScreenButton from "./domain/capture/CaptureScreenButton";
+import LayoutTracker from "./domain/capture/LayoutTracker";
 
-export { AppStorys };
-export type { StoryGroup, UserData };
+export {AppStorys};
+export type {CampaignStoryGroup as StoryGroup};
 export {
-    Banner, Floater, Pip, Stories, StoryScreen, PipScreen, Survey,
-    // Tooltip, 
-    Csat, Widgets
+  Banner, Floater, Pip, Stories, StoriesScreen, PipScreen, Survey,
+  // Tooltip,
+  Csat, Widgets,
+  CaptureScreenButton,
+  LayoutTracker as AppStorysLayoutTracker
 };

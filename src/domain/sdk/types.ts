@@ -1,0 +1,153 @@
+export type CampaignFloater = {
+  id: string,
+  campaign_type: 'FLT',
+  details: {
+    id: string,
+    image: string,
+    link: string | null,
+    width: null | number,
+    height: null | number,
+    position: null | string,
+  }
+}
+
+export type CampaignStorySlide = {
+  id: string,
+  parent: string
+  image: null | string,
+  video: null | string,
+  link: null | string,
+  button_text: null | string,
+  order: number;
+  content: string | null
+  finish: number
+}
+
+export type CampaignStoryGroup = {
+  id: string,
+  name: string,
+  thumbnail: string,
+  ringColor: string,
+  nameColor: string,
+  order: number,
+  slides: Array<CampaignStorySlide>
+}
+
+export type CampaignStory = {
+  id: string,
+  campaign_type: 'STR',
+  details: Array<CampaignStoryGroup>
+}
+
+export type CampaignBanner = {
+  id: string,
+  campaign_type: 'BAN',
+  details: {
+    id: string,
+    image: string,
+    width: null | number,
+    height: null | number,
+    link: null | string,
+  }
+}
+
+export type CampaignPip = {
+  id: string
+  campaign_type: 'PIP',
+  details: {
+    id: string,
+    small_video: string,
+    height: null | number,
+    width: null | number,
+    large_video: string,
+    link: string | null,
+    button_text: string | null,
+    position: null | string,
+    campaign: string,
+    screen: number,
+  }
+}
+
+export type CampaignSurvey = {
+  id: string,
+  campaign_type: 'SUR',
+  details: {
+    id: string,
+    name: string;
+    responses: number;
+    styling: {
+      [key: string]: string;
+    },
+    surveyQuestion: string;
+    surveyOptions: {
+      [key: string]: string;
+    },
+    campaign: string;
+    hasOthers: boolean;
+    screen: string;
+  }
+}
+
+export type CampaignCsat = {
+  id: string,
+  campaign_type: 'CSAT',
+  details: {
+    id: string,
+    title: string;
+    styling: {
+      [key: string]: string;
+    },
+    thankyouImage: string;
+    thankyouText: string;
+    thankyouDescription: string;
+    description_text: string;
+    feedback_option: {
+      [key: string]: string;
+    },
+    campaign: string;
+    screen: number;
+  }
+}
+
+export type CampaignWidgets = {
+  id: string,
+  campaign_type: 'WID',
+  details: {
+    id: string,
+    type: string,
+    height: number,
+    widget_images: [
+      {
+        id: string,
+        image: string,
+        link: string,
+        order: number;
+      }
+    ],
+    campaign: string,
+  },
+}
+
+export interface Attributes {
+  [key: string]: string;
+}
+
+export interface AppStorysStore {
+  campaigns: Array<Campaign>;
+  userId: string;
+  appId: string;
+  accountId: string;
+  attributes?: Attributes;
+}
+
+export interface AppStorysActions {
+  setCampaigns: (campaigns: Array<Campaign>) => void;
+  setUserId: (userId: string) => void;
+  setAppId: (appId: string) => void;
+  setAccountId: (accountId: string) => void;
+  setAttributes: (attributes: Attributes) => void;
+}
+
+export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
+  // CampaignSpotlight |
+  CampaignCsat | CampaignWidgets;
