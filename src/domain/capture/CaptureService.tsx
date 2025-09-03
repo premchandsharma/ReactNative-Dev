@@ -61,7 +61,6 @@ class CaptureService {
       // Collect layout information
       const children = JSON.stringify(this.layoutData);
 
-      console.log('Captured screenshot at:', filepath);
       console.log('Layout data:', this.layoutData);
 
       // Send to server for element identification

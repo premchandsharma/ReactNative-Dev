@@ -18,7 +18,8 @@
         "types": "./lib/typescript/commonjs/src/index.d.ts",
         "default": "./lib/commonjs/index.js"
       }
-    }
+    },
+    "./babel-plugin": "./babel-plugin.js"
   },
   "files": [
     "src",
@@ -26,6 +27,7 @@
     "android",
     "ios",
     "cpp",
+    "babel-plugin.js",
     "*.podspec",
     "!ios/build",
     "!android/build",
@@ -41,6 +43,7 @@
   "scripts": {
     "example": "yarn workspace @appstorys/appstorys-react-native-example",
     "test": "jest",
+    "test-babel": "node test-babel-transformation.js",
     "typecheck": "tsc",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
@@ -67,6 +70,9 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@babel/cli": "^7.23.0",
+    "@babel/core": "^7.23.0",
+    "@babel/preset-react": "^7.23.0",
     "@commitlint/config-conventional": "^17.0.2",
     "@evilmartians/lefthook": "^1.5.0",
     "@octokit/plugin-paginate-rest": "^12.0.0",

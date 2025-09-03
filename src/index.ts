@@ -12,7 +12,8 @@ import Stories from './components/stories';
 import StoriesScreen from './components/stories/screen';
 import PipScreen from './components/pip/screen';
 import CaptureScreenButton from "./domain/capture/CaptureScreenButton";
-import LayoutTracker from "./domain/capture/LayoutTracker";
+import MeasurementProvider from "./domain/capture/MeasurementProvider";
+import Measurable from "./domain/capture/Measurable";
 
 export {AppStorys};
 export type {CampaignStoryGroup as StoryGroup};
@@ -21,5 +22,6 @@ export {
   // Tooltip,
   Csat, Widgets,
   CaptureScreenButton,
-  LayoutTracker as AppStorysLayoutTracker
+  MeasurementProvider as AppStorysMeasurementProvider,
+  Measurable,
 };
