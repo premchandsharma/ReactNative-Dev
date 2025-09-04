@@ -11,7 +11,7 @@ import Pip from './components/pip';
 import Stories from './components/stories';
 import StoriesScreen from './components/stories/screen';
 import PipScreen from './components/pip/screen';
-import CaptureScreenButton from "./domain/capture/CaptureScreenButton";
+import CaptureScreenButton from "./components/CaptureScreenButton";
 import MeasurementProvider from "./domain/capture/MeasurementProvider";
 import Measurable from "./domain/capture/Measurable";
 

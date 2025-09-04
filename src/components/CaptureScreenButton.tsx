@@ -1,7 +1,6 @@
-import {ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import CaptureService, {useCaptureServiceStore} from "./CaptureService";
-import {useCallback, useContext} from "react";
-import MeasurementContext from "./MeasurementContext";
+import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {useCaptureServiceStore} from "../domain/capture/CaptureService";
+import useCapture from "../domain/capture/useCapture";
 
 interface CaptureScreenButtonProps {
   screenName: string;
@@ -10,38 +9,7 @@ interface CaptureScreenButtonProps {
 export default function CaptureScreenButton({screenName}: CaptureScreenButtonProps) {
   const enabled = useCaptureServiceStore(state => state.isScreenCaptureEnabled);
   const isCapturing = useCaptureServiceStore(state => state.isCapturing);
-  const {measureAll} = useContext(MeasurementContext);
-
-  const handleCapture = useCallback(async () => {
-    try {
-      if (CaptureService.getIsCapturing()) {
-        Alert.alert('Info', 'Capture is already in progress');
-        return;
-      }
-
-      const measurements = await measureAll();
-
-      CaptureService.clearLayoutData();
-      measurements.forEach(({id, size, position}) => {
-        CaptureService.addLayoutInfo(id, {
-          x: position.x,
-          y: position.y,
-          width: size.width,
-          height: size.height,
-        });
-      });
-
-      const success = await CaptureService.takeScreenshot(screenName);
-
-      if (success) {
-        Alert.alert('Success', 'Screen captured successfully');
-      } else {
-        Alert.alert('Error', 'Failed to capture screen');
-      }
-    } catch (error) {
-      Alert.alert('Error', `Failed to capture screen: ${error}`);
-    }
-  }, [screenName]);
+  const handleCapture = useCapture(screenName);
 
   if (!enabled) {
     return null;

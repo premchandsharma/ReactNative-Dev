@@ -1,3 +1,5 @@
+import {CampaignTooltips} from "../tooltips/types";
+
 export type CampaignFloater = {
   id: string,
   campaign_type: 'FLT',
@@ -149,5 +151,5 @@ export interface AppStorysActions {
 }
 
 export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
-  // CampaignSpotlight |
+  CampaignTooltips |
   CampaignCsat | CampaignWidgets;

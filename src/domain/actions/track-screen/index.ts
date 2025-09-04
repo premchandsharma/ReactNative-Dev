@@ -55,6 +55,7 @@ export default async function trackScreen(screenName: string) {
     }
   });
   if (response) {
+    console.log(response);
     useAppStorysStore.getState().setCampaigns(response.campaigns);
     useCaptureServiceStore.getState().setScreenCaptureEnabled(response.metadata.screen_capture_enabled);
   }
