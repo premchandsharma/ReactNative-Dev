@@ -25,7 +25,7 @@ export default async function trackUser(attributes?: Attributes) {
     });
 
     if (!response.ok) {
-      throw new Error('Something went wrong');
+      console.error('Something went wrong:', response.status, response.statusText);
     }
   } catch (error) {
     console.error('Error in trackUser', error);

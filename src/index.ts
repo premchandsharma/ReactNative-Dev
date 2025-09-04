@@ -1,6 +1,5 @@
 import Banner from './components/Banner';
 import Survey from './components/Survey';
-// import Tooltip from './components/Tooltip';
 import Csat from './components/Csat';
 import Widgets from './components/Widgets';
 
@@ -12,7 +11,6 @@ import Stories from './components/stories';
 import StoriesScreen from './components/stories/screen';
 import PipScreen from './components/pip/screen';
 import CaptureScreenButton from "./components/CaptureScreenButton";
-import MeasurementProvider from "./domain/capture/MeasurementProvider";
 import Measurable from "./domain/capture/Measurable";
 
 export {AppStorys};
@@ -22,6 +20,5 @@ export {
   // Tooltip,
   Csat, Widgets,
   CaptureScreenButton,
-  MeasurementProvider as AppStorysMeasurementProvider,
   Measurable,
 };

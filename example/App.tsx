@@ -1,5 +1,5 @@
 import {Button, Switch, Text, TextInput, TouchableOpacity, View} from "react-native";
-import {AppStorys, AppStorysMeasurementProvider, Banner, CaptureScreenButton} from '@appstorys/appstorys-react-native';
+import {AppStorys} from '@appstorys/appstorys-react-native';
 import {useEffect, useState} from "react";
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
@@ -20,7 +20,7 @@ export default function App() {
   }, []);
 
   return (
-    <AppStorysMeasurementProvider>
+    <AppStorys.MeasurementProvider>
       <SafeAreaProvider>
         <SafeAreaView>
           <View style={{padding: 20}} testID="container">
@@ -128,7 +128,11 @@ export default function App() {
                 <Text style={{marginTop: 5, fontSize: 12}} key="share-label" testID="share-button-label">Share</Text>
               </TouchableOpacity>
 
-              <Banner/>
+              <AppStorys.Banner/>
+
+              <AppStorys.Floater/>
+
+              <AppStorys.Csat/>
 
               <TouchableOpacity style={{alignItems: 'center'}} key="save-btn" testID="save-button">
                 <View style={{
@@ -158,7 +162,7 @@ export default function App() {
               </Text>
             </View>
 
-            <CaptureScreenButton screenName={"Home Screen React"} key="capture-btn"/>
+            <AppStorys.CaptureScreenButton screenName={"Home Screen React"} key="capture-btn"/>
 
             <View
               style={{
@@ -176,6 +180,6 @@ export default function App() {
           </View>
         </SafeAreaView>
       </SafeAreaProvider>
-    </AppStorysMeasurementProvider>
+    </AppStorys.MeasurementProvider>
   );
 }

@@ -1,5 +1,4 @@
 import Banner from '../../components/Banner';
-// import Tooltip from './components/Tooltip';
 import Survey from '../../components/Survey';
 import Csat from '../../components/Csat';
 import Widgets from '../../components/Widgets';
@@ -9,6 +8,7 @@ import useAppStorysStore from "./store";
 import verifyAccount from '../actions/verifyAccount';
 import trackScreen from '../actions/track-screen';
 import trackUser from '../actions/trackUser';
+import trackEvent from "../actions/trackEvent";
 import verifyUser from '../actions/verifyUser';
 import captureSurveyResponse from '../actions/captureSurveyResponse';
 import captureCsatResponse from '../actions/captureCsatResponse';
@@ -17,28 +17,12 @@ import Pip from '../../components/pip';
 import PipScreen from '../../components/pip/screen';
 import StoriesScreen from '../../components/stories/screen';
 import Floater from '../../components/Floater';
+import MeasurementProvider from '../capture/MeasurementProvider';
+import Measurable from '../capture/Measurable';
+import CaptureScreenButton from "../../components/CaptureScreenButton";
 
 class AppStorys {
-
-  public static Stories = Stories;
-  public static StoriesScreen = StoriesScreen;
-  public static Floater = Floater;
-  public static Pip = Pip;
-  public static PipScreen = PipScreen;
-  public static Banner = Banner;
-  // public static Spotlight = Tooltip;
-  public static Survey = Survey;
-  public static Csat = Csat;
-  public static Widgets = Widgets;
-  private static instance: AppStorys;
   private isInitializing = false;
-
-  public static getInstance(): AppStorys {
-    if (!AppStorys.instance) {
-      AppStorys.instance = new AppStorys();
-    }
-    return AppStorys.instance;
-  }
 
   public async initialize(
     appId: string,
@@ -80,6 +64,8 @@ class AppStorys {
     return trackUserAction(campaignId, action);
   }
 
+  public Stories = Stories;
+
   public async verifyUser(attributes?: Attributes) {
     await this.ensureInitialized();
     return verifyUser(attributes);
@@ -113,6 +99,23 @@ class AppStorys {
     if (!state.userId || !state.appId || !state.accountId) {
       throw new Error('AppStorys not initialized. Call initialize() first.');
     }
+  }
+  public StoriesScreen = StoriesScreen;
+  public Floater = Floater;
+  public Pip = Pip;
+  public PipScreen = PipScreen;
+  public Banner = Banner;
+  public CaptureScreenButton = CaptureScreenButton;
+  // public Tooltip = Tooltip;
+  public Survey = Survey;
+  public Csat = Csat;
+  public Widgets = Widgets;
+  public MeasurementProvider = MeasurementProvider;
+  public Measurable = Measurable;
+
+  public async trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
+    await this.ensureInitialized();
+    return trackEvent(event, campaignId, metadata);
   }
 }
 

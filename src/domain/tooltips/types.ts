@@ -1,14 +1,16 @@
 export type CampaignTooltips = {
   id: string;
   campaign_type: 'TTP';
-  details: {
-    _id: string;
-    campaign: string;
-    created_at: string;
-    name: string;
-    screenId: string;
-    tooltips: Array<Tooltip>;
-  };
+  details: CampaignTooltipsDetails;
+};
+
+export type CampaignTooltipsDetails = {
+  _id: string;
+  campaign: string;
+  created_at: string;
+  name: string;
+  screenId: string;
+  tooltips: Array<Tooltip>;
 };
 
 export type Tooltip = {
@@ -45,4 +47,11 @@ export type Tooltip = {
   triggerType: string;
   type: string;
   url: string;
+}
+
+export type TooltipPosition = {
+  tooltipX: number;
+  tooltipY: number;
+  arrowX: number;
+  placement: 'top' | 'bottom';
 }
