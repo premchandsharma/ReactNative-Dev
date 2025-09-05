@@ -1,67 +1,32 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
+import {useEffect, useMemo, useState} from 'react';
+import {Image, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View} from 'react-native';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { UserData } from '../sdk';
-import { UserActionTrack } from '../utils/trackuseraction';
-
-type StorySlide = {
-  id: string;
-  parent: string;
-  image: string | null;
-  video: string | null;
-  link: string | null;
-  button_text: string | null;
-  order: number;
-  content: string | null;
-}
-
-type StoryGroup = {
-  id: string;
-  name: string;
-  thumbnail: string;
-  ringColor: string;
-  nameColor: string;
-  order: number;
-  slides: [StorySlide];
-}
-
-type CampaignStory = {
-  id: string;
-  campaign_type: 'STR';
-  details: [StoryGroup];
-}
-
-type RootStackParamList = {
-  StoryScreen: {
-    storySlideData: CampaignStory;
-    storyCampaignId: string;
-    user_id: string;
-    initialGroupIndex: number;
-  };
-};
+import {StoriesScreenRootStackParamList} from "./types";
+import useCampaigns from "../../domain/actions/useCampaigns";
+import {CampaignStory, CampaignStoryGroup} from "../../domain/sdk/types";
+import trackUserAction from "../../domain/actions/trackUserAction";
 
 const VIEWED_STORIES_KEY = 'viewed_stories';
 const GREY_COLOR = '#808080';
 
-const Stories: React.FC<UserData> = ({ campaigns, user_id }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+export default function Stories() {
+  const navigation = useNavigation<NavigationProp<StoriesScreenRootStackParamList>>();
   const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
 
-  // Find the original campaign data
-  const campaignData = campaigns.find((val) => val.campaign_type === 'STR') as CampaignStory;
+  const data = useCampaigns<CampaignStory>("STR");
 
   const reversedDetailsData = useMemo(() => {
-    if (!campaignData?.details) return null;
+    if (!data?.details) return null;
 
-    const reversedDetails = [...campaignData.details].reverse() as [StoryGroup];
-    
+    const reversedDetails = [...data.details].reverse() as [CampaignStoryGroup];
+
     return {
-      id: campaignData.id,
+      id: data.id,
       campaign_type: 'STR' as const,
       details: reversedDetails
     };
-  }, [campaignData]);
+  }, [data]);
 
   // Load viewed stories from AsyncStorage on component mount
   useEffect(() => {
@@ -88,7 +53,7 @@ const Stories: React.FC<UserData> = ({ campaigns, user_id }) => {
       const bViewed = viewedStories.has(b.id);
       if (aViewed === bViewed) return 0;
       return aViewed ? 1 : -1;
-    }) as [StoryGroup];
+    }) as [CampaignStoryGroup];
 
     return {
       id: reversedDetailsData.id,
@@ -114,21 +79,20 @@ const Stories: React.FC<UserData> = ({ campaigns, user_id }) => {
 
   function onNavigate(data: CampaignStory, groupIndex: number) {
     const storyGroup = data.details[groupIndex];
-    markStoryAsViewed(storyGroup!.id);
-    
+    void markStoryAsViewed(storyGroup!.id);
+
     navigation.navigate('StoryScreen', {
       storySlideData: data,
       storyCampaignId: data.id,
-      user_id,
       initialGroupIndex: groupIndex
     });
   }
 
   useEffect(() => {
     if (sortedDetailsData?.id) {
-      UserActionTrack(user_id, sortedDetailsData.id, 'IMP');
+      void trackUserAction(sortedDetailsData.id, 'IMP');
     }
-  }, [sortedDetailsData?.id, user_id]);
+  }, [sortedDetailsData?.id]);
 
   if (!sortedDetailsData) return null;
 
@@ -142,17 +106,17 @@ const Stories: React.FC<UserData> = ({ campaigns, user_id }) => {
               <View style={styles.storyWrapper}>
                 <TouchableWithoutFeedback onPress={() => {
                   onNavigate(sortedDetailsData, index)
-                  UserActionTrack(user_id, sortedDetailsData.id, 'CLK');
+                  void trackUserAction(sortedDetailsData.id, 'CLK');
                 }}>
-                  <View 
+                  <View
                     style={[
-                      styles.thumbnailContainer, 
-                      { borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor }
+                      styles.thumbnailContainer,
+                      {borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor}
                     ]}
                   >
-                    <Image source={{ uri: storyGroup.thumbnail }} style={[styles.thumbnail, {
+                    <Image source={{uri: storyGroup.thumbnail}} style={[styles.thumbnail, {
                       opacity: isViewed ? 0.6 : 1,
-                    }]} />
+                    }]}/>
                   </View>
                 </TouchableWithoutFeedback>
                 <Text style={{
@@ -208,5 +172,3 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 });
-
-export default Stories;

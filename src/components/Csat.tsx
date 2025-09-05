@@ -1,49 +1,31 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  Image,
-  StyleSheet,
-} from 'react-native';
-import { UserActionTrack } from "../utils/trackuseraction";
-import { CampaignCsat, UserData } from "../sdk";
-import { CaptureCsatResponse } from '../utils/capturecsatresponse';
+import {Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from 'react-native';
+import {CampaignCsat} from '../domain/sdk/types';
+import trackUserAction from "../domain/actions/trackUserAction";
+import captureCsatResponse from "../domain/actions/captureCsatResponse";
+import useCampaigns from "../domain/actions/useCampaigns";
 
-export type CsatProps = {
-} & UserData;
-
-const Csat: React.FC<CsatProps> = ({
-  campaigns,
-  user_id,
-}) => {
-  const [showCSAT, setShowCSAT] = useState(true);
+export default function Csat() {
+  const [showCsat, setShowCsat] = useState(true);
   const [selectedStars, setSelectedStars] = useState(0);
   const [showThanks, setShowThanks] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [additionalComments, setAdditionalComments] = useState('');
 
-  // Added from Flutter implementation
   const [_showCsat, set_ShowCsat] = useState(false);
   const [csatLocalValue, setCsatLocalValue] = useState('');
 
-  const data = useMemo(
-    () =>
-      campaigns.find((val) => val.campaign_type === "CSAT") as CampaignCsat,
-    [campaigns],
-  );
+  const data = useCampaigns<CampaignCsat>("CSAT");
 
   useEffect(() => {
     if (data && data.id) {
       _initializeCsat();
-      _ifshowCsat();
+      void _ifshowCsat();
     }
     console.log(csatLocalValue)
-  }, [data, user_id]);
+  }, [data]);
 
   const _initializeCsat = () => {
     if (!data) return;
@@ -56,7 +38,7 @@ const Csat: React.FC<CsatProps> = ({
       setCsatLocalValue(csatLoaded || '');
 
       if (!csatLoaded || csatLoaded !== 'true') {
-      _scheduleCsatDisplay();
+        await _scheduleCsatDisplay();
       }
     } catch (error) {
       console.error('Error checking CSAT status:', error);
@@ -68,11 +50,10 @@ const Csat: React.FC<CsatProps> = ({
     const delay = delayDisplay ? parseInt(delayDisplay) : 0;
 
     setTimeout(async () => {
-      UserActionTrack(user_id, data.id, "IMP");
-      set_ShowCsat(true);
-
       if (data) {
         try {
+          void trackUserAction(data.id, "IMP");
+          set_ShowCsat(true);
           await AsyncStorage.setItem('csat_loaded', 'true');
         } catch (error) {
           console.error('Error saving CSAT status:', error);
@@ -90,9 +71,8 @@ const Csat: React.FC<CsatProps> = ({
         setShowThanks(true);
         if (data) {
           console.log(starCount);
-          CaptureCsatResponse(
+          void captureCsatResponse(
             data.details.id,
-            user_id,
             starCount,
             selectedOption || undefined,
             additionalComments || undefined,
@@ -107,18 +87,17 @@ const Csat: React.FC<CsatProps> = ({
   const handleSubmitFeedback = () => {
     if (data) {
       console.log(selectedStars);
-      CaptureCsatResponse(
+      void captureCsatResponse(
         data.details.id,
-        user_id,
         selectedStars,
         selectedOption || undefined,
         additionalComments || undefined,
-    );
+      );
     }
     setShowThanks(true);
   };
 
-  if (!showCSAT || !_showCsat || !data || !data.details) {
+  if (!showCsat || !_showCsat || !data || !data.details) {
     return null;
   }
 
@@ -131,41 +110,41 @@ const Csat: React.FC<CsatProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.card, { backgroundColor: data.details.styling.csatBackgroundColor }]}>
+      <View style={[styles.card, {backgroundColor: data.details.styling.csatBackgroundColor}]}>
         <ScrollView>
           {showThanks ? (
             <View style={styles.thanksContainer}>
               {data.details.thankyouImage && (
                 <Image
-                  source={{ uri: data.details.thankyouImage }}
+                  source={{uri: data.details.thankyouImage}}
                   style={styles.thanksImage}
                 />
               )}
-              <Text style={[styles.thanksTitle, { color: data.details.styling.csatTitleColor }]}>
+              <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
                 {data.details.thankyouText}
               </Text>
-              <Text style={[styles.thanksDescription, { color: data.details.styling.csatDescriptionTextColor }]}>
+              <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
                 {data.details.thankyouDescription}
               </Text>
               <TouchableOpacity
-                style={[styles.button, { backgroundColor: data.details.styling.csatCtaBackgroundColor }]}
-                onPress={() => setShowCSAT(false)}
+                style={[styles.button, {backgroundColor: data.details.styling.csatCtaBackgroundColor}]}
+                onPress={() => setShowCsat(false)}
               >
-                <Text style={[styles.buttonText, { color: data.details.styling.csatCtaTextColor }]}>
+                <Text style={[styles.buttonText, {color: data.details.styling.csatCtaTextColor}]}>
                   Done
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
-              <Text style={[styles.title, { color: data.details.styling.csatTitleColor }]}>
+              <Text style={[styles.title, {color: data.details.styling.csatTitleColor}]}>
                 {data.details.title}
               </Text>
-              <Text style={[styles.description, { color: data.details.styling.csatDescriptionTextColor }]}>
+              <Text style={[styles.description, {color: data.details.styling.csatDescriptionTextColor}]}>
                 {data.details.description_text}
               </Text>
               <View style={styles.starsContainer}>
-                {Array.from({ length: 5 }).map((_, index) => (
+                {Array.from({length: 5}).map((_, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => handleStarPress(index)}
@@ -182,18 +161,18 @@ const Csat: React.FC<CsatProps> = ({
                       width: 32,
                       height: 32,
                       marginHorizontal: 3,
-                    }} />
+                    }}/>
                   </TouchableOpacity>
                 ))}
               </View>
 
               {!showFeedback ? (
-                <Text style={[styles.rateText, { color: data.details.styling.csatDescriptionTextColor }]}>
+                <Text style={[styles.rateText, {color: data.details.styling.csatDescriptionTextColor}]}>
                   Rate Us!
                 </Text>
               ) : (
                 <View style={styles.feedbackContainer}>
-                  <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
+                  <Text style={[styles.feedbackPrompt, {color: data.details.styling.csatDescriptionTextColor}]}>
                     Please tell us what went wrong.
                   </Text>
                   {feedbackOptions.map((option) => (
@@ -225,7 +204,7 @@ const Csat: React.FC<CsatProps> = ({
                   ))}
 
                   <TextInput
-                    style={[styles.input, { color: data.details.styling.csatDescriptionTextColor }]}
+                    style={[styles.input, {color: data.details.styling.csatDescriptionTextColor}]}
                     value={additionalComments}
                     onChangeText={setAdditionalComments}
                     placeholder="Your feedback"
@@ -233,10 +212,10 @@ const Csat: React.FC<CsatProps> = ({
                   />
 
                   <TouchableOpacity
-                    style={[styles.submitButton, { backgroundColor: data.details.styling.csatCtaBackgroundColor }]}
+                    style={[styles.submitButton, {backgroundColor: data.details.styling.csatCtaBackgroundColor}]}
                     onPress={handleSubmitFeedback}
                   >
-                    <Text style={[styles.submitText, { color: data.details.styling.csatCtaTextColor }]}>
+                    <Text style={[styles.submitText, {color: data.details.styling.csatCtaTextColor}]}>
                       Submit
                     </Text>
                   </TouchableOpacity>
@@ -255,13 +234,13 @@ const Csat: React.FC<CsatProps> = ({
             borderRadius: 16,
             padding: 8,
           }}
-          onPress={() => setShowCSAT(false)}
+          onPress={() => setShowCsat(false)}
         >
           <Image source={require("../assets/images/close.png")} style={{
             tintColor: data.details.styling['csatCtaTextColor'],
             width: 13,
             height: 13,
-          }} />
+          }}/>
         </TouchableOpacity>
       </View>
     </View>
@@ -363,5 +342,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default Csat;

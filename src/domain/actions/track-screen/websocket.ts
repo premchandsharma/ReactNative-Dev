@@ -1,13 +1,6 @@
 import {EventEmitter} from 'events';
+import {WebSocketClientConfig} from "./types";
 
-// Types and interfaces
-export interface WebSocketConfig {
-  url: string;
-  token: string;
-  sessionID: string;
-}
-
-// WebSocket Client Implementation
 class WebSocketClient extends EventEmitter {
   private webSocket: WebSocket | null = null;
   private isConnected = false;
@@ -18,7 +11,7 @@ class WebSocketClient extends EventEmitter {
     this.setMaxListeners(100); // Equivalent to extraBufferCapacity in Kotlin
   }
 
-  connect(config: WebSocketConfig): boolean {
+  connect(config: WebSocketClientConfig): boolean {
     try {
       const wsUrl = new URL(config.url);
 
