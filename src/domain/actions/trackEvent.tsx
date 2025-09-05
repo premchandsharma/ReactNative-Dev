@@ -1,5 +1,7 @@
 import {getAccessToken, getUserId} from "../sdk/store";
 import {Attributes} from "../sdk/types";
+import { getDeviceInfo } from "./GetDeviceInfo";
+import { sendOrQueue } from "./OfflineQueue";
 
 export default async function trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
   try {
@@ -9,27 +11,42 @@ export default async function trackEvent(event: string, campaignId?: string, met
       return;
     }
 
+    const deviceInfo = await getDeviceInfo();
+
+    const mergedMetadata = {
+      ...(metadata || {}),
+      ...deviceInfo,
+    };
+
     const body: Record<string, any> = {
       user_id: getUserId(),
-      event,
+      event: event,
+      metadata: mergedMetadata,
     };
     if (campaignId) {
       body.campaign_id = campaignId;
     }
-    if (metadata) {
-      body.metadata = metadata;
-    }
 
-    const response = await fetch('https://tracking.appstorys.com/capture-event', {
-      method: 'POST',
+    // const response = await fetch('https://tracking.appstorys.com/capture-event', {
+    //   method: 'POST',
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //     'Authorization': `Bearer ${access_token}`
+    //   },
+    //   body: JSON.stringify(body),
+    // });
+
+    const response = sendOrQueue({
+      url: "https://tracking.appstorys.com/capture-event",
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${access_token}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${access_token}`,
       },
-      body: JSON.stringify(body),
+      body: body,
     });
 
-    if (!response.ok) {
+    if (response instanceof Response && !response.ok) {
       console.error('Something went wrong in trackEvent:', response.status, response.statusText);
     }
   } catch (error) {

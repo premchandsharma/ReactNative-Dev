@@ -16,7 +16,7 @@ export default function Tooltip(
   const screenSize = Dimensions.get('window');
 
   const renderBackdrop = () => {
-    if (!styling.enableBackdrop) return null;
+    // if (!styling.enableBackdrop) return null;
 
     const highlightRect = {
       x: position.x - styling.highlightPadding,

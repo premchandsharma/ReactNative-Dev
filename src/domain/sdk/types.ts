@@ -130,6 +130,54 @@ export type CampaignWidgets = {
   },
 }
 
+export interface CampaignModal {
+  id: string;
+  campaign_type: "MOD";
+  details: ModalDetails;
+}
+
+export interface ModalDetails {
+  modals?: Array<{
+    url?: string;
+    size?: string;
+    borderRadius?: string;
+    backgroundOpacity?: string;
+    link?: string;
+  }>;
+}
+
+export interface BottomSheetElement {
+  type?: "image" | "body" | "cta";
+  order?: number;
+  url?: string;
+  imageLink?: string;
+  overlayButton?: boolean;
+  titleText?: string;
+  descriptionText?: string;
+  ctaText?: string;
+  ctaLink?: string;
+  position?: "left" | "right" | "center";
+  alignment?: "left" | "right" | "center";
+  paddingLeft?: string;
+  paddingRight?: string;
+  paddingTop?: string;
+  paddingBottom?: string;
+  ctaFullWidth?: boolean;
+  // Add other styling properties as needed
+}
+
+export interface BottomSheetDetails {
+  elements?: BottomSheetElement[];
+  cornerRadius?: string;
+  enableCrossButton?: string;
+}
+
+export interface CampaignBottomSheet {
+  id: string;
+  campaign_type: "BTS";
+  details: BottomSheetDetails;
+}
+
 export interface Attributes {
   [key: string]: string;
 }
@@ -152,4 +200,4 @@ export interface AppStorysActions {
 
 export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
-  CampaignCsat | CampaignWidgets;
+  CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet;

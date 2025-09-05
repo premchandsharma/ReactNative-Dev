@@ -20,6 +20,9 @@ import Floater from '../../components/Floater';
 import MeasurementProvider from '../capture/MeasurementProvider';
 import Measurable from '../capture/Measurable';
 import CaptureScreenButton from "../../components/CaptureScreenButton";
+import Modal from '../../components/Modal';
+import BottomSheet from '../../components/BottomSheet';
+import { setUserProperties } from '../actions/SetUserProperties';
 
 class AppStorys {
   private isInitializing = false;
@@ -110,12 +113,19 @@ class AppStorys {
   public Survey = Survey;
   public Csat = Csat;
   public Widgets = Widgets;
+  public Modal = Modal;
+  public BottomSheet = BottomSheet
   public MeasurementProvider = MeasurementProvider;
   public Measurable = Measurable;
 
   public async trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
     await this.ensureInitialized();
     return trackEvent(event, campaignId, metadata);
+  }
+
+  public async setUserProperties(attributes: Attributes) {
+    await this.ensureInitialized();
+    return setUserProperties(attributes);
   }
 }
 

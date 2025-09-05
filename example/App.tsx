@@ -1,4 +1,4 @@
-import {Button, Switch, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View} from "react-native";
 import {AppStorys} from '@appstorys/appstorys-react-native';
 import {useEffect, useState} from "react";
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
@@ -23,7 +23,10 @@ export default function App() {
     <AppStorys.MeasurementProvider>
       <SafeAreaProvider>
         <SafeAreaView>
-          <View style={{padding: 20}} testID="container">
+          <ScrollView  
+            // showsVerticalScrollIndicator={true}
+          >
+            <View style={{padding: 20}} testID="container">
             <View style={{backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15}} key="header-container"
                   testID="main-header-view">
               <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center'}} key="title-text" testID="app-title">
@@ -130,9 +133,10 @@ export default function App() {
 
               <AppStorys.Banner/>
 
-              <AppStorys.Floater/>
+              {/* <AppStorys.Floater/> */}
 
               <AppStorys.Csat/>
+              <AppStorys.Modal/>
 
               <TouchableOpacity style={{alignItems: 'center'}} key="save-btn" testID="save-button">
                 <View style={{
@@ -177,7 +181,50 @@ export default function App() {
                 Footer Placeholder
               </Text>
             </View>
+
+            <View
+              style={{
+                height: 100,
+                backgroundColor: '#f8f9fa',
+                marginTop: 20,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              key="footer-spacer" testID="bottom-spacer">
+              <Text style={{color: '#6c757d'}} key="footer-text" testID="footer-placeholder">
+                Footer Placeholder
+              </Text>
+            </View>
+
+            <View
+              style={{
+                height: 100,
+                backgroundColor: '#f8f9fa',
+                marginTop: 20,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              key="footer-spacer" testID="bottom-spacer">
+              <Text style={{color: '#6c757d'}} key="footer-text" testID="footer-placeholder">
+                Footer Placeholder
+              </Text>
+            </View>
+
+            <View
+              style={{
+                height: 100,
+                backgroundColor: '#f8f9fa',
+                marginTop: 20,
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              key="footer-spacer" testID="bottom-spacer">
+              <Text style={{color: '#6c757d'}} key="footer-text" testID="footer-placeholder">
+                Footer Placeholder
+              </Text>
+            </View>
           </View>
+          </ScrollView>
         </SafeAreaView>
       </SafeAreaProvider>
     </AppStorys.MeasurementProvider>
