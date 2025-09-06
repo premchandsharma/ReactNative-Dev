@@ -1,9 +1,7 @@
-import {CampaignStory} from "../../domain/sdk/types";
+import { CampaignStory } from "../../domain/sdk/types";
 
-export type StoriesScreenRootStackParamList = {
-  StoryScreen: {
-    storySlideData: CampaignStory;
-    storyCampaignId: string;
-    initialGroupIndex: number;
-  };
+export type StoryData = {
+  slideData: CampaignStory;
+  campaignId: string;
+  initialGroupIndex: number;
 };

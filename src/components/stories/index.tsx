@@ -1,18 +1,18 @@
-import {useEffect, useMemo, useState} from 'react';
-import {Image, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View} from 'react-native';
-import {NavigationProp, useNavigation} from '@react-navigation/native';
+import { useEffect, useMemo, useState } from 'react';
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {StoriesScreenRootStackParamList} from "./types";
 import useCampaigns from "../../domain/actions/useCampaigns";
-import {CampaignStory, CampaignStoryGroup} from "../../domain/sdk/types";
+import { CampaignStory, CampaignStoryGroup } from "../../domain/sdk/types";
 import trackUserAction from "../../domain/actions/trackUserAction";
+import StoriesScreen from "./screen";
+import { StoryData } from './types';
 
 const VIEWED_STORIES_KEY = 'viewed_stories';
 const GREY_COLOR = '#808080';
 
 export default function Stories() {
-  const navigation = useNavigation<NavigationProp<StoriesScreenRootStackParamList>>();
   const [viewedStories, setViewedStories] = useState<Set<string>>(new Set());
+  const [selectedStoryData, setSelectedStoryData] = useState<StoryData | null>(null);
 
   const data = useCampaigns<CampaignStory>("STR");
 
@@ -81,9 +81,9 @@ export default function Stories() {
     const storyGroup = data.details[groupIndex];
     void markStoryAsViewed(storyGroup!.id);
 
-    navigation.navigate('StoryScreen', {
-      storySlideData: data,
-      storyCampaignId: data.id,
+    setSelectedStoryData({
+      slideData: data,
+      campaignId: data.id,
       initialGroupIndex: groupIndex
     });
   }
@@ -111,12 +111,12 @@ export default function Stories() {
                   <View
                     style={[
                       styles.thumbnailContainer,
-                      {borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor}
+                      { borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor }
                     ]}
                   >
-                    <Image source={{uri: storyGroup.thumbnail}} style={[styles.thumbnail, {
+                    <Image source={{ uri: storyGroup.thumbnail }} style={[styles.thumbnail, {
                       opacity: isViewed ? 0.6 : 1,
-                    }]}/>
+                    }]} />
                   </View>
                 </TouchableWithoutFeedback>
                 <Text style={{
@@ -132,6 +132,20 @@ export default function Stories() {
           );
         })}
       </ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent={false}
+        visible={!!selectedStoryData}
+        onRequestClose={() => setSelectedStoryData(null)}
+      >
+        {selectedStoryData && (
+          <StoriesScreen
+            params={selectedStoryData}
+            onClose={() => setSelectedStoryData(null)}
+          />
+        )}
+      </Modal>
     </View>
   );
 };

@@ -1,33 +1,26 @@
-import {Dimensions, Image, Linking, Platform, Text, TouchableOpacity, View,} from "react-native";
-import {useEffect, useState} from "react";
+import { Dimensions, Image, Linking, Platform, Text, TouchableOpacity, View, } from "react-native";
+import { useState } from "react";
 import Video from "react-native-video";
-import {NavigationProp, RouteProp, useNavigation, useRoute} from "@react-navigation/native";
-import {togglePipVisibility} from '../../domain/actions/pipState';
-import {PipScreenRootStackParamList} from "./types";
+import { togglePipVisibility } from '../../domain/actions/pipState';
 import trackUserAction from "../../domain/actions/trackUserAction";
-import {Pressable} from "react-native-gesture-handler";
+import { Pressable } from "react-native-gesture-handler";
+import { PipData } from "./types";
 
-export default function PipScreen() {
-  const navigation = useNavigation<NavigationProp<PipScreenRootStackParamList>>();
-  const {params} = useRoute<RouteProp<PipScreenRootStackParamList, "PipScreen">>();
-  const {height, width} = Dimensions.get("window");
+interface PipScreenProps {
+  params: PipData;
+  onClose: () => void;
+  onMinimize: () => void;
+}
+
+export default function PipScreen({ params, onClose, onMinimize }: PipScreenProps) {
+  const { height, width } = Dimensions.get("window");
 
   const [mute, setMute] = useState(false);
-
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
-
-  const close = () => {
-    navigation.goBack();
-  };
 
   const minimize = () => {
     // set small pip visible
     togglePipVisibility(true);
-    navigation.goBack();
+    onMinimize();
   };
 
   const speaker = () => {
@@ -41,7 +34,7 @@ export default function PipScreen() {
         backgroundColor: "black",
       }}
     >
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <Video
           repeat={true}
           resizeMode="contain"
@@ -62,7 +55,7 @@ export default function PipScreen() {
 
       {/* Close button */}
       <TouchableOpacity
-        onPress={close}
+        onPress={onClose}
         style={{
           flex: 1,
           position: "absolute",

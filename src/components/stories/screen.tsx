@@ -1,3 +1,4 @@
+import { SetStateAction, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -10,21 +11,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {SetStateAction, useEffect, useRef, useState} from "react";
 import Video from "react-native-video";
-import {NavigationProp, RouteProp, useNavigation, useRoute,} from "@react-navigation/native";
-import {StoriesScreenRootStackParamList} from "./types";
 import trackUserAction from "../../domain/actions/trackUserAction";
-import {CampaignStorySlide} from "../../domain/sdk/types";
+import { CampaignStorySlide } from "../../domain/sdk/types";
+import { StoryData } from "./types";
 
 const closeImage = require("../../assets/images/close.png");
 const shareImage = require("../../assets/images/share.png");
 
-export default function StoriesScreen() {
+interface StoriesScreenProps {
+  params: StoryData;
+  onClose: () => void;
+}
 
-  const navigation = useNavigation<NavigationProp<StoriesScreenRootStackParamList>>();
-  const {params} = useRoute<RouteProp<StoriesScreenRootStackParamList, "StoryScreen">>();
-  const {height, width} = Dimensions.get("window");
+export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
+
+  const { height, width } = Dimensions.get("window");
 
   const [content, setContent] = useState<CampaignStorySlide[]>([]);
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
@@ -42,20 +44,16 @@ export default function StoriesScreen() {
     setCurrentGroupIndex(params.initialGroupIndex);
     loadStoryGroup(params.initialGroupIndex);
 
-    navigation.setOptions({
-      headerShown: false,
-    });
-
     console.log(videoDuration);
-  }, [params, navigation]);
+  }, [params]);
 
   const loadStoryGroup = (groupIndex: number) => {
-    if (!params?.storySlideData?.details[groupIndex]) {
+    if (!params?.slideData?.details[groupIndex]) {
       close();
       return;
     }
 
-    const slides = params.storySlideData.details[groupIndex].slides;
+    const slides = params.slideData.details[groupIndex].slides;
     const transformedData = slides.map((storySlide) => ({
       ...storySlide,
       finish: 0,
@@ -84,16 +82,16 @@ export default function StoriesScreen() {
   const progress = useRef(new Animated.Value(0)).current;
 
   const start = (duration: number) => {
-    if (params?.storySlideData?.details &&
-      params.storySlideData.details[currentGroupIndex] &&
-      params.storySlideData.details[currentGroupIndex].slides &&
-      params.storySlideData.details[currentGroupIndex].slides[currentStorySlide] &&
-      params.storySlideData.details[currentGroupIndex].slides[currentStorySlide].id) {
-      if (params?.storyCampaignId) {
+    if (params?.slideData?.details &&
+      params.slideData.details[currentGroupIndex] &&
+      params.slideData.details[currentGroupIndex].slides &&
+      params.slideData.details[currentGroupIndex].slides[currentStorySlide] &&
+      params.slideData.details[currentGroupIndex].slides[currentStorySlide].id) {
+      if (params?.campaignId) {
         void trackUserAction(
-          params.storyCampaignId,
+          params.campaignId,
           "IMP",
-          params.storySlideData.details[currentGroupIndex].slides[currentStorySlide]?.id ?? "",
+          params.slideData.details[currentGroupIndex].slides[currentStorySlide]?.id ?? "",
         );
         setCurrentStorySlide(currentStorySlide + 1);
       }
@@ -103,7 +101,7 @@ export default function StoriesScreen() {
       toValue: 1,
       duration: duration,
       useNativeDriver: false,
-    }).start(({finished}) => {
+    }).start(({ finished }) => {
       if (finished) {
         next();
       }
@@ -122,7 +120,7 @@ export default function StoriesScreen() {
     } else {
       // Move to next story group
       const nextGroupIndex = currentGroupIndex + 1;
-      if (nextGroupIndex < params!.storySlideData.details.length) {
+      if (nextGroupIndex < params!.slideData.details.length) {
         setCurrentGroupIndex(nextGroupIndex);
         loadStoryGroup(nextGroupIndex);
       } else {
@@ -144,7 +142,7 @@ export default function StoriesScreen() {
       // Move to previous story group
       const prevGroupIndex = currentGroupIndex - 1;
       setCurrentGroupIndex(prevGroupIndex);
-      // const prevGroupSlides = params!.storySlideData.details[prevGroupIndex].slides;
+      // const prevGroupSlides = params!.slideData.details[prevGroupIndex].slides;
       loadStoryGroup(prevGroupIndex);
       // setCurrent(prevGroupSlides.length - 1);
       setCurrent(0);
@@ -154,7 +152,7 @@ export default function StoriesScreen() {
   const close = () => {
     console.log("Close function called");
     progress.setValue(0);
-    navigation.goBack();
+    onClose();
   };
 
   const speaker = () => {
@@ -175,8 +173,8 @@ export default function StoriesScreen() {
 
   if (!params) {
     return (
-      <View style={{backgroundColor: "black"}}>
-        <Text style={{color: "white", fontSize: 14}}>No data available</Text>
+      <View style={{ backgroundColor: "black" }}>
+        <Text style={{ color: "white", fontSize: 14 }}>No data available</Text>
       </View>
     );
   }
@@ -196,7 +194,7 @@ export default function StoriesScreen() {
         typeof content[current]?.image === "string" &&
         content[current]?.image !== "" && (
           <Image
-            source={{uri: content[current]?.image!}}
+            source={{ uri: content[current]?.image! }}
             onLoadEnd={() => {
               progress.setValue(0);
               start(5000); // Image lasts 5 seconds
@@ -214,8 +212,8 @@ export default function StoriesScreen() {
         typeof content[current]?.video === "string" &&
         content[current]?.video !== "" && (
           <Video
-            source={{uri: content[current]?.video!}}
-            style={{height: "100%", width: width}}
+            source={{ uri: content[current]?.video! }}
+            style={{ height: "100%", width: width }}
             resizeMode="cover"
             muted={mute}
             onLoad={(data: { duration: SetStateAction<number>; }) => {
@@ -296,11 +294,11 @@ export default function StoriesScreen() {
             }}
           >
             {
-              params?.storySlideData?.details &&
-              params.storySlideData.details[currentGroupIndex] &&
-              params.storySlideData.details[currentGroupIndex].thumbnail && (
+              params?.slideData?.details &&
+              params.slideData.details[currentGroupIndex] &&
+              params.slideData.details[currentGroupIndex].thumbnail && (
                 <Image
-                  source={{uri: params?.storySlideData?.details[currentGroupIndex].thumbnail}}
+                  source={{ uri: params?.slideData?.details[currentGroupIndex].thumbnail }}
                   style={{
                     width: 40,
                     height: 40,
@@ -308,16 +306,16 @@ export default function StoriesScreen() {
                   }}
                 />
               )}
-            {params?.storySlideData?.details &&
-              params.storySlideData.details[currentGroupIndex] &&
-              params.storySlideData.details[currentGroupIndex].name && (
+            {params?.slideData?.details &&
+              params.slideData.details[currentGroupIndex] &&
+              params.slideData.details[currentGroupIndex].name && (
                 <Text style={{
                   marginLeft: 12,
                   fontSize: 15,
                   fontWeight: "500",
                   color: "white",
                 }}>
-                  {params.storySlideData.details[currentGroupIndex].name}
+                  {params.slideData.details[currentGroupIndex].name}
                 </Text>
               )}
           </View>
@@ -391,11 +389,11 @@ export default function StoriesScreen() {
         }}
       >
         <TouchableOpacity
-          style={{width: "50%", height: "100%"}}
+          style={{ width: "50%", height: "100%" }}
           onPress={previous}
         />
         <TouchableOpacity
-          style={{width: "50%", height: "100%"}}
+          style={{ width: "50%", height: "100%" }}
           onPress={next}
         />
       </View>
@@ -420,9 +418,9 @@ export default function StoriesScreen() {
                 if (typeof content[current]?.link === "string") {
                   void Linking.openURL(content[current]?.link!);
                 }
-                if (params && params.storyCampaignId) {
+                if (params && params.campaignId) {
                   void trackUserAction(
-                    params.storyCampaignId,
+                    params.campaignId,
                     "CLK",
                     content[current]?.id!,
                   );
