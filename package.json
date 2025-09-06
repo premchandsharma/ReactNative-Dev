@@ -23,11 +23,13 @@
   },
   "files": [
     "src",
+    "src/types/*.d.ts",
     "lib",
     "android",
     "ios",
     "cpp",
     "babel-plugin.js",
+    "appstorys.d.ts",
     "*.podspec",
     "!ios/build",
     "!android/build",

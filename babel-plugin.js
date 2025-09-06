@@ -1,6 +1,6 @@
 // Babel plugin to automatically wrap elements with testID in Measurable component
 module.exports = function (babel) {
-  const {types: t} = babel;
+  const { types: t } = babel;
 
   return {
     name: "appstorys-react-native",
@@ -22,16 +22,16 @@ module.exports = function (babel) {
           return;
         }
 
-        // Check if this element has a testID prop
-        const testIDAttribute = openingElement.attributes.find(
+        // Check if this element has an appstorys prop
+        const appstorysAttribute = openingElement.attributes.find(
           attr =>
             t.isJSXAttribute(attr) &&
             t.isJSXIdentifier(attr.name) &&
-            attr.name.name === 'testID'
+            attr.name.name === 'appstorys'
         );
 
-        if (!testIDAttribute) {
-          return; // No testID, skip this element
+        if (!appstorysAttribute) {
+          return; // No appstorys prop, skip this element
         }
 
         // Check if parent is already Measurable to prevent double wrapping
@@ -44,15 +44,15 @@ module.exports = function (babel) {
           return; // Already wrapped, skip
         }
 
-        // Get the testID value
-        const testIDValue = testIDAttribute.value;
+        // Get the appstorys value
+        const appstorysValue = appstorysAttribute.value;
 
-        // Remove testID from the original element
+        // Remove appstorys from the original element
         openingElement.attributes = openingElement.attributes.filter(
           attr => !(
             t.isJSXAttribute(attr) &&
             t.isJSXIdentifier(attr.name) &&
-            attr.name.name === 'testID'
+            attr.name.name === 'appstorys'
           )
         );
 
@@ -62,8 +62,8 @@ module.exports = function (babel) {
             t.jsxIdentifier('Measurable'),
             [
               t.jsxAttribute(
-                t.jsxIdentifier('testID'),
-                testIDValue
+                t.jsxIdentifier('appstorys'),
+                appstorysValue
               )
             ]
           ),
@@ -117,24 +117,24 @@ module.exports = function (babel) {
               return;
             }
 
-            // Check if this child element has a testID prop
-            const childTestIDAttribute = childOpeningElement.attributes.find(
+            // Check if this child element has an appstorys prop
+            const childAppstorysAttribute = childOpeningElement.attributes.find(
               attr =>
                 t.isJSXAttribute(attr) &&
                 t.isJSXIdentifier(attr.name) &&
-                attr.name.name === 'testID'
+                attr.name.name === 'appstorys'
             );
 
-            if (childTestIDAttribute) {
-              // Get the testID value
-              const childTestIDValue = childTestIDAttribute.value;
+            if (childAppstorysAttribute) {
+              // Get the appstorys value
+              const childAppstorysValue = childAppstorysAttribute.value;
 
-              // Remove testID from the original child element
+              // Remove appstorys from the original child element
               childOpeningElement.attributes = childOpeningElement.attributes.filter(
                 attr => !(
                   t.isJSXAttribute(attr) &&
                   t.isJSXIdentifier(attr.name) &&
-                  attr.name.name === 'testID'
+                  attr.name.name === 'appstorys'
                 )
               );
 
@@ -144,8 +144,8 @@ module.exports = function (babel) {
                   t.jsxIdentifier('Measurable'),
                   [
                     t.jsxAttribute(
-                      t.jsxIdentifier('testID'),
-                      childTestIDValue
+                      t.jsxIdentifier('appstorys'),
+                      childAppstorysValue
                     )
                   ]
                 ),
