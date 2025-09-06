@@ -1,17 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
+import {useEffect, useMemo, useState} from "react";
 import {
-  View,
   Image,
-  TouchableOpacity,
+  Linking,
   Modal as RNModal,
   StyleSheet,
+  TouchableOpacity,
   TouchableWithoutFeedback,
-  Linking,
+  View,
 } from "react-native";
-import RNFS from "react-native-fs";
 // import LottieView from "lottie-react-native";
 import useCampaigns from "../domain/actions/useCampaigns";
-import { CampaignModal } from "../domain/sdk/types";
+import {CampaignModal} from "../domain/sdk/types";
+import checkForImage from "../domain/actions/checkForImage";
 
 export default function Modal() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -32,50 +32,15 @@ export default function Modal() {
     return "image";
   }, [imageUrl]);
 
-  const downloadImage = async (url: string) => {
-    const filename = url.split("/").pop()?.split("?")[0];
-    try {
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl: url,
-        toFile: `${RNFS.DocumentDirectoryPath}/${filename}`,
-      }).promise;
-      if (downloadResult.statusCode === 200) {
-        console.log("Image downloaded!");
-      } else {
-        console.error("Failed to download image:", downloadResult);
-      }
-    } catch (error) {
-      console.error("Error downloading image:", error);
-    }
-  };
-
-  const checkCacheForImage = async (url: string) => {
-    const filename = url.split("/").pop()?.split("?")[0];
-    const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
-    try {
-      const exists = await RNFS.exists(path);
-      if (exists) {
-        setImagePath(path);
-      } else {
-        await downloadImage(url);
-        setImagePath(path);
-      }
-    } catch (error) {
-      console.error("Error checking cache for image:", error);
-      // Fallback to direct URL if caching fails
-      setImagePath(url);
-    }
-  };
-
   // Track impression when modal is shown and set initial visibility
   useEffect(() => {
     if (data?.id && modalDetails && imageUrl) {
       setIsModalVisible(true);
     //   UserActionTrack(user_id, campaignData.id, "IMP");
-      
+
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        checkCacheForImage(imageUrl);
+        void checkForImage(imageUrl, setImagePath);
       }
     }
   }, [data?.id, modalDetails, imageUrl, mediaType]);
@@ -102,10 +67,10 @@ export default function Modal() {
     }
 
     const link = modal?.link;
-    
+
     if (link && isValidUrl(link)) {
       // Open external URL
-      Linking.openURL(link).catch(err => 
+      Linking.openURL(link).catch(err =>
         console.error("Failed to open URL:", err)
       );
     }
@@ -135,15 +100,15 @@ export default function Modal() {
     //         resizeMode="contain"
     //       />
     //     );
-      
+
       case "gif":
       case "image":
       default:
         if (!imagePath) return null;
-        
-        const imageSource = imagePath?.startsWith("file://") 
+
+        const imageSource = imagePath?.startsWith("file://")
           ? { uri: imagePath }
-          : imagePath?.startsWith("http") 
+          : imagePath?.startsWith("http")
             ? { uri: imagePath }
             : { uri: `file://${imagePath}` };
 
@@ -170,9 +135,9 @@ export default function Modal() {
       onRequestClose={handleCloseClick}
     >
       <TouchableWithoutFeedback onPress={handleCloseClick}>
-        <View 
+        <View
           style={[
-            styles.overlay, 
+            styles.overlay,
             { backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})` }
           ]}
         >
@@ -184,7 +149,7 @@ export default function Modal() {
             >
               {renderMedia()}
             </TouchableOpacity>
-            
+
             {/* Close Button */}
             <TouchableOpacity
               onPress={handleCloseClick}
