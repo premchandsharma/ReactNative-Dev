@@ -1,6 +1,3 @@
-// Import types first to ensure module augmentation is applied
-import './types/appstorys';
-
 import Banner from './components/Banner';
 import Survey from './components/Survey';
 import Csat from './components/Csat';
