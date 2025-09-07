@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import {PixelRatio, StatusBar} from 'react-native';
+import {PixelRatio, Platform, StatusBar} from 'react-native';
 import MeasurementContext from './MeasurementContext';
 import {MeasurementData} from "./types";
 import TooltipConsumer from "../../components/tooltip/consumer";
@@ -36,12 +36,17 @@ export default function MeasurementProvider({children}: { children: React.ReactN
       // const screenData = Dimensions.get('screen');
       // console.log(`Screen info - Logical: ${screenData.width}x${screenData.height}, PixelRatio: ${pixelRatio}, Physical: ${screenData.width * pixelRatio}x${screenData.height * pixelRatio}`);
 
+      // Detect if we need to adjust for status bar
+      // In edge-to-edge mode, we typically need to add statusBarHeight
+      // You can also check this via your app's window insets configuration
+      const statusBarAdjustment = Platform.OS === 'android' && Platform.Version >= 35 ? statusBarHeight : 0;
+
       refsToMeasure.forEach(([id, ref]) => {
         if (ref && typeof ref.measureInWindow === 'function') {
           ref.measureInWindow((x: number, y: number, width: number, height: number) => {
             // Convert logical pixels to physical pixels
             const physicalX = x * pixelRatio;
-            const physicalY = (y + statusBarHeight) * pixelRatio;
+            const physicalY = (y + statusBarAdjustment) * pixelRatio;
             const physicalWidth = width * pixelRatio;
             const physicalHeight = height * pixelRatio;
 
@@ -57,7 +62,7 @@ export default function MeasurementProvider({children}: { children: React.ReactN
                 x: physicalX,
                 y: physicalY,
                 logicalX: x,
-                logicalY: y + statusBarHeight,
+                logicalY: y + statusBarAdjustment,
               },
               pixelRatio,
             });
