@@ -1,5 +1,7 @@
-import {useEffect, useRef, useState} from "react";
-import {Animated, Dimensions, Image, Platform, View,} from "react-native";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { useHeaderHeight } from '@react-navigation/elements';
+import { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, Image, Modal, Platform, View, } from "react-native";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -8,18 +10,16 @@ import {
   State,
 } from "react-native-gesture-handler";
 import Video from "react-native-video";
-import {useBottomTabBarHeight} from "@react-navigation/bottom-tabs";
-import {subscribeToPipVisibility} from '../../domain/actions/pipState';
-import {useHeaderHeight} from '@react-navigation/elements';
-import {NavigationProp, useNavigation} from '@react-navigation/native';
-import useCampaigns from "../../domain/actions/useCampaigns";
-import {CampaignPip} from "../../domain/sdk/types";
-import trackUserAction from "../../domain/actions/trackUserAction";
 import checkForImage from "../../domain/actions/checkForImage";
-import {PipScreenRootStackParamList} from "./types";
+import { subscribeToPipVisibility } from '../../domain/actions/pipState';
+import trackUserAction from "../../domain/actions/trackUserAction";
+import useCampaigns from "../../domain/actions/useCampaigns";
+import { CampaignPip } from "../../domain/sdk/types";
+import PipScreen from "./screen";
+import { PipData } from "./types";
 
 export default function Pip() {
-  const {width, height} = Dimensions.get("window");
+  const { width, height } = Dimensions.get("window");
 
   const data = useCampaigns<CampaignPip>("PIP");
 
@@ -33,7 +33,8 @@ export default function Pip() {
     };
   }, []);
 
-  const navigation = useNavigation<NavigationProp<PipScreenRootStackParamList>>();
+  const [selectedPipData, setSelectedPipData] = useState<PipData | null>(null);
+
   let pipBottomValue = data != null && data.details.height != null ? data.details.height + 20 : 220;
 
 
@@ -69,7 +70,7 @@ export default function Pip() {
   ).current;
 
   useEffect(() => {
-    pan.setOffset({x: initialX, y: initialY});
+    pan.setOffset({ x: initialX, y: initialY });
   }, [])
 
   useEffect(() => {
@@ -84,6 +85,11 @@ export default function Pip() {
     setPipVisible(false);
   };
 
+  const closeModal = () => {
+    setSelectedPipData(null);
+    setPipVisible(true); // Show small PIP again when modal closes
+  };
+
   const speaker = () => {
     setMute(!mute);
   }
@@ -92,7 +98,7 @@ export default function Pip() {
     if (data && (data.details.large_video != null || data.details.large_video != "")) {
       closePip();
       const link = data.details.link;
-      navigation.navigate('PipScreen', {
+      setSelectedPipData({
         id: data.id,
         link,
         button_text: data.details.button_text,
@@ -118,17 +124,17 @@ export default function Pip() {
         },
       },
     ],
-    {useNativeDriver: true},
+    { useNativeDriver: true },
   );
 
   const onHandlerStateChange = (event: PanGestureHandlerStateChangeEvent) => {
     if (event.nativeEvent.oldState === State.ACTIVE) {
-      const {absoluteX, absoluteY, x, y,} = event.nativeEvent;
+      const { absoluteX, absoluteY, x, y, } = event.nativeEvent;
 
       const constrainedPosition = constrainPosition(absoluteX - x, absoluteY - y);
 
       pan.setOffset(constrainedPosition);
-      pan.setValue({x: 0, y: 0});
+      pan.setValue({ x: 0, y: 0 });
 
     }
   };
@@ -166,7 +172,7 @@ export default function Pip() {
               }
             }
           >
-            <View onTouchEnd={expandPip} style={{flex: 1}}>
+            <View onTouchEnd={expandPip} style={{ flex: 1 }}>
               {data.details.small_video &&
                 data.details.large_video && (
                   <Video
@@ -261,6 +267,21 @@ export default function Pip() {
           </Animated.View>
         </PanGestureHandler>
       )}
+
+      <Modal
+        animationType="fade"
+        transparent={false}
+        visible={!!selectedPipData}
+        onRequestClose={closeModal}
+      >
+        {selectedPipData && (
+          <PipScreen
+            params={selectedPipData}
+            onClose={closeModal}
+            onMinimize={closeModal}
+          />
+        )}
+      </Modal>
     </GestureHandlerRootView>
   );
 };

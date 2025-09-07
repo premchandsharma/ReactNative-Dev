@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "jsx": "react-jsx",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "resolveJsonModule": true
+    },
+    "include": [
+        "**/*.ts",
+        "**/*.tsx",
+        "node_modules/@appstorys/appstorys-react-native/appstorys.d.ts"
+    ]
+}

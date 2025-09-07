@@ -15,7 +15,7 @@ try {
   // Transform the code using ONLY our Babel plugin (preserve JSX)
   const result = babel.transformSync(inputCode, {
     plugins: [
-      './babel-plugin-auto-measurable.js'
+      './babel-plugin.js'
     ],
     parserOpts: {
       plugins: ['jsx', 'typescript']
@@ -44,14 +44,14 @@ try {
   console.log(`📄 Output saved to: ${outputFile}`);
 
   console.log('\n=== SUMMARY OF CHANGES ===');
-  console.log('🔍 Elements with testID that were wrapped:');
+  console.log('🔍 Elements with appstorys prop that were wrapped:');
 
   // Count transformations
-  const testIDMatches = inputCode.match(/testID="[^"]*"/g) || [];
-  console.log(`   • Found ${testIDMatches.length} elements with testID`);
-  testIDMatches.forEach(match => {
-    const testId = match.match(/testID="([^"]*)"/)[1];
-    console.log(`   • ${testId}`);
+  const appstorysMatches = inputCode.match(/appstorys="[^"]*"/g) || [];
+  console.log(`   • Found ${appstorysMatches.length} elements with appstorys prop`);
+  appstorysMatches.forEach(match => {
+    const appstorysId = match.match(/appstorys="([^"]*)"/)[1];
+    console.log(`   • ${appstorysId}`);
   });
 
   // Check if Measurable import was added

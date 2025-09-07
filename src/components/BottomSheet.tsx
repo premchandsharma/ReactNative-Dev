@@ -1,21 +1,21 @@
-import { useEffect, useState, useRef } from "react";
+import {useEffect, useRef, useState} from "react";
 import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  Modal,
-  StyleSheet,
-  ScrollView,
-  Linking,
   Animated,
   Dimensions,
-  PanResponder,
   Easing,
+  Image,
+  Linking,
+  Modal,
+  PanResponder,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import RNFS from "react-native-fs";
 import useCampaigns from "../domain/actions/useCampaigns";
-import { CampaignBottomSheet } from "../domain/sdk/types";
+import {CampaignBottomSheet} from "../domain/sdk/types";
+import checkForImage from "../domain/actions/checkForImage";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
@@ -27,10 +27,7 @@ export default function BottomSheet() {
   // Animation values
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
-  const [contentHeight, setContentHeight] = useState(0);
   const [isContentMeasured, setIsContentMeasured] = useState(false);
-
-  contentHeight;
 
   // Find bottom sheet campaign data
   const campaignData = useCampaigns<CampaignBottomSheet>("BTS");
@@ -46,18 +43,15 @@ export default function BottomSheet() {
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        evt
+      onMoveShouldSetPanResponder: (_, gestureState) => {
         return Math.abs(gestureState.dy) > 10;
       },
-      onPanResponderMove: (evt, gestureState) => {
-        evt
+      onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
           slideAnim.setValue(Math.max(0, gestureState.dy));
         }
       },
-      onPanResponderRelease: (evt, gestureState) => {
-        evt
+      onPanResponderRelease: (_, gestureState) => {
         if (gestureState.dy > DRAG_THRESHOLD || gestureState.vy > 0.5) {
           handleDismissRequest();
         } else {
@@ -72,32 +66,6 @@ export default function BottomSheet() {
       },
     })
   ).current;
-
-  const downloadImage = async (url: string): Promise<string> => {
-    const filename = url.split("/").pop()?.split("?")[0];
-    const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
-
-    try {
-      const exists = await RNFS.exists(path);
-      if (exists) {
-        return path;
-      } else {
-        const downloadResult = await RNFS.downloadFile({
-          fromUrl: url,
-          toFile: path,
-        }).promise;
-
-        if (downloadResult.statusCode === 200) {
-          return path;
-        } else {
-          return url; // Fallback to direct URL
-        }
-      }
-    } catch (error) {
-      console.error("Error downloading image:", error);
-      return url; // Fallback to direct URL
-    }
-  };
 
   // Show bottom sheet with animation
   const showBottomSheet = () => {
@@ -152,7 +120,7 @@ export default function BottomSheet() {
 
       // Cache image if exists
       if (imageElement?.url) {
-        downloadImage(imageElement.url).then(cachedPath => {
+        void checkForImage(imageElement.url, cachedPath => {
           setImageCache(prev => ({ ...prev, [imageElement.url!]: cachedPath }));
         });
       }
@@ -465,10 +433,8 @@ export default function BottomSheet() {
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             bounces={false}
-            onContentSizeChange={(contentWidth, contentHeight) => {
-              contentWidth
+            onContentSizeChange={(_, contentHeight) => {
               if (!isContentMeasured && contentHeight > 0) {
-                setContentHeight(contentHeight);
                 setIsContentMeasured(true);
               }
             }}

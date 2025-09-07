@@ -24,5 +24,57 @@ Be sure you follow all installation instructions:
 npm install @appstorys/appstorys-react-native
 ```
 
+## TypeScript Setup
+
+Due to TypeScript's module augmentation limitations, you'll need to manually add the AppStorys type declarations to your project.
+
+### Option 1: Copy the type declarations file
+
+Copy the `appstorys.d.ts` file from the package root to your project's `types` folder or any location included in your `tsconfig.json`:
+
+```sh
+# Copy the type declarations
+cp node_modules/@appstorys/appstorys-react-native/appstorys.d.ts ./types/
+```
+
+### Option 2: Create the type declarations manually
+
+Create a new file `types/appstorys.d.ts` (or any `.d.ts` file) in your project with the following content:
+
+```typescript
+declare module 'react-native' {
+  interface AccessibilityProps {
+    /**
+     * AppStorys measurement identifier for tracking user interactions and analytics.
+     * This prop is automatically transformed by the AppStorys Babel plugin.
+     */
+    appstorys?: string;
+  }
+
+  interface ButtonProps extends AccessibilityProps {
+  }
+}
+
+export {};
+```
+
+### Option 3: Include in tsconfig.json
+
+Add the type declaration file to your `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    // ... your existing options
+  },
+  "include": [
+    "src/**/*",
+    "node_modules/@appstorys/appstorys-react-native/appstorys.d.ts"
+  ]
+}
+```
+
+After completing one of these steps, you'll be able to use the `appstorys` prop on React Native components with full TypeScript support.
+
 # Publishing new version
 Commit all changes and run `npm run prepare && npm run release`
