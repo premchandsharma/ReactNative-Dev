@@ -1,6 +1,7 @@
 import React, {useContext, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import MeasurementContext from './MeasurementContext';
+import {layoutChangeEvent} from './layoutChangeEvent';
 
 interface MeasurableProps {
   appstorys: string;
@@ -33,7 +34,7 @@ export default function Measurable({ appstorys, children }: MeasurableProps) {
   // View doesn't get optimized away by the React Native layout system,
   // which would prevent us from measuring it accurately.
   return (
-    <View ref={componentRef} collapsable={false}>
+    <View ref={componentRef} collapsable={false} onLayout={() => layoutChangeEvent(appstorys)}>
       {children}
     </View>
   );

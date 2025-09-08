@@ -1,19 +1,35 @@
 import React, {useContext, useEffect, useState} from "react";
 import MeasurementContext from "../../domain/capture/MeasurementContext";
 import TooltipManager from "../../domain/tooltips/TooltipManager";
+import {subscribeToLayoutChange} from "../../domain/capture/layoutChangeEvent";
+
+interface TooltipConsumerState {
+  content: React.ReactElement | null;
+  id: string | null;
+}
 
 export default function TooltipConsumer() {
-  const [content, setContent] = useState<React.ReactElement | null>(null);
+  const [state, setState] = useState<TooltipConsumerState>({
+    content: null,
+    id: null
+  });
   const measurementContext = useContext(MeasurementContext);
 
   useEffect(() => {
     TooltipManager.getInstance().setTooltipHandlers(
-      (component) => setContent(component),
-      () => setContent(null)
+      (id, content) => setState({content, id}),
+      () => setState({content: null, id: null})
     );
 
-    TooltipManager.getInstance().setMeasurementFunction(measurementContext.measureAll);
+    TooltipManager.getInstance().setMeasurementFunction(measurementContext.measure);
   }, [measurementContext]);
 
-  return content;
+  useEffect(() => {
+    if (!state.id) {
+      return;
+    }
+    return subscribeToLayoutChange(state.id, () => TooltipManager.getInstance().reshowCurrentTooltip());
+  }, [state.id]);
+
+  return state.content;
 }

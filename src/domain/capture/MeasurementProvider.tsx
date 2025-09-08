@@ -29,43 +29,10 @@ export default function MeasurementProvider({children}: { children: React.ReactN
         return resolve(data); // Return empty array if nothing to measure
       }
 
-      // Get status bar height and pixel ratio for accurate measurements
-      const statusBarHeight = StatusBar.currentHeight || 0;
-      const pixelRatio = PixelRatio.get();
-
-      // const screenData = Dimensions.get('screen');
-      // console.log(`Screen info - Logical: ${screenData.width}x${screenData.height}, PixelRatio: ${pixelRatio}, Physical: ${screenData.width * pixelRatio}x${screenData.height * pixelRatio}`);
-
-      // Detect if we need to adjust for status bar
-      // In edge-to-edge mode, we typically need to add statusBarHeight
-      // You can also check this via your app's window insets configuration
-      const statusBarAdjustment = Platform.OS === 'android' && Platform.Version >= 35 ? statusBarHeight : 0;
-
       refsToMeasure.forEach(([id, ref]) => {
         if (ref && typeof ref.measureInWindow === 'function') {
           ref.measureInWindow((x: number, y: number, width: number, height: number) => {
-            // Convert logical pixels to physical pixels
-            const physicalX = x * pixelRatio;
-            const physicalY = (y + statusBarAdjustment) * pixelRatio;
-            const physicalWidth = width * pixelRatio;
-            const physicalHeight = height * pixelRatio;
-
-            data.push({
-              id,
-              size: {
-                width: physicalWidth,
-                height: physicalHeight,
-                logicalWidth: width,
-                logicalHeight: height,
-              },
-              position: {
-                x: physicalX,
-                y: physicalY,
-                logicalX: x,
-                logicalY: y + statusBarAdjustment,
-              },
-              pixelRatio,
-            });
+            data.push(getMeasurementData(id, x, y, width, height));
           });
         } else {
           console.warn(`Could not measure component with id: ${id}`);
@@ -81,10 +48,58 @@ export default function MeasurementProvider({children}: { children: React.ReactN
     })
   }, []);
 
+  // Re-measure specific components by ID
+  const measure = useCallback(async (id: string) => {
+    const ref = registeredRefs.current.get(id);
+    if (!ref || typeof ref.measureInWindow !== 'function') {
+      return null;
+    }
+
+    return new Promise<MeasurementData | null>((resolve) => {
+      ref.measureInWindow((x: number, y: number, width: number, height: number) => {
+        resolve(getMeasurementData(id, x, y, width, height));
+      });
+    });
+  }, []);
+
   return (
-    <MeasurementContext.Provider value={{register, unregister, measureAll}}>
+    <MeasurementContext.Provider value={{register, unregister, measureAll, measure}}>
       {children}
       <TooltipConsumer/>
     </MeasurementContext.Provider>
   );
+}
+
+function getMeasurementData(id: string, x: number, y: number, width: number, height: number): MeasurementData {
+  // Get status bar height and pixel ratio for accurate measurements
+  const statusBarHeight = StatusBar.currentHeight || 0;
+  const pixelRatio = PixelRatio.get();
+
+  // Detect if we need to adjust for status bar
+  // In edge-to-edge mode, we typically need to add statusBarHeight
+  // You can also check this via your app's window insets configuration
+  const statusBarAdjustment = Platform.OS === 'android' && Platform.Version >= 35 ? statusBarHeight : 0;
+
+  // Convert logical pixels to physical pixels
+  const physicalX = x * pixelRatio;
+  const physicalY = (y + statusBarAdjustment) * pixelRatio;
+  const physicalWidth = width * pixelRatio;
+  const physicalHeight = height * pixelRatio;
+
+  return {
+    id,
+    size: {
+      width: physicalWidth,
+      height: physicalHeight,
+      logicalWidth: width,
+      logicalHeight: height,
+    },
+    position: {
+      x: physicalX,
+      y: physicalY,
+      logicalX: x,
+      logicalY: y + statusBarAdjustment,
+    },
+    pixelRatio,
+  }
 }

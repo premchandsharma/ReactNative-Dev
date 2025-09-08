@@ -23,6 +23,7 @@ export interface CaptureServiceActions {
 export interface MeasurementContextType {
   register: (id: string, ref: any) => void;
   unregister: (id: string) => void;
+  measure: (id: string) => Promise<MeasurementData | null>;
   measureAll: () => Promise<MeasurementData[]>;
 }
 
