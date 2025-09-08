@@ -1,7 +1,7 @@
-import { Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { AppStorys } from '@appstorys/appstorys-react-native';
-import { useEffect, useState } from "react";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {AppStorys} from '@appstorys/appstorys-react-native';
+import {useEffect, useState} from "react";
+import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
 void AppStorys.initialize(
   "9e1b21a2-350a-4592-918c-2a19a73f249a",
@@ -24,29 +24,29 @@ export default function App() {
       <SafeAreaProvider>
         <SafeAreaView>
           <ScrollView
-          // showsVerticalScrollIndicator={true}
+            // showsVerticalScrollIndicator={true}
           >
-            <View style={{ padding: 20 }} appstorys="container">
-              <View style={{ backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15 }}
-                appstorys="main-header-view">
-                <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }} appstorys="app-title">
+            <View style={{padding: 20}} appstorys="container">
+              <View style={{backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15}}
+                    appstorys="main-header-view">
+                <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center'}} appstorys="app-title">
                   Testing AppStorys SDK
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20 }}
-                appstorys="controls-container">
-                <Button title="Track Screen" appstorys="track-screen-button" />
+              <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}
+                    appstorys="controls-container">
+                <Button title="Track Screen" appstorys="track-screen-button"/>
                 <TouchableOpacity
-                  style={{ backgroundColor: '#007AFF', padding: 10, borderRadius: 5 }}
+                  style={{backgroundColor: '#007AFF', padding: 10, borderRadius: 5}}
                   appstorys="custom-touchable-button"
                 >
-                  <Text style={{ color: 'white' }} appstorys="touchable-text">Custom Button</Text>
+                  <Text style={{color: 'white'}} appstorys="touchable-text">Custom Button</Text>
                 </TouchableOpacity>
               </View>
 
               <TextInput
-                style={{ borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5 }}
+                style={{borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5}}
                 placeholder="Enter some text..."
                 value={inputText}
                 onChangeText={setInputText}
@@ -54,7 +54,7 @@ export default function App() {
               />
 
               <View
-                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}
+                style={{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15}}
                 appstorys="switch-container">
                 <Text appstorys="switch-label-text">Enable notifications:</Text>
                 <Switch
@@ -64,43 +64,43 @@ export default function App() {
                 />
               </View>
 
-              <View style={{ backgroundColor: '#e8f4f8', padding: 15, borderRadius: 10, marginBottom: 20 }}
-                appstorys="information-card">
-                <Text style={{ fontSize: 16, marginBottom: 10 }} appstorys="card-title">
+              <View style={{backgroundColor: '#e8f4f8', padding: 15, borderRadius: 10, marginBottom: 20}}
+                    appstorys="information-card">
+                <Text style={{fontSize: 16, marginBottom: 10}} appstorys="card-title">
                   Random Information Card
                 </Text>
-                <Text style={{ color: '#666' }} appstorys="card-description">
+                <Text style={{color: '#666'}} appstorys="card-description">
                   This is some random content to make the screen more complex and realistic.
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20 }}
-                appstorys="tags-wrapper">
-                <View style={{ backgroundColor: '#ff6b6b', padding: 8, margin: 4, borderRadius: 15 }}
-                  appstorys="red-tag">
-                  <Text style={{ color: 'white', fontSize: 12 }} appstorys="red-tag-text">React</Text>
+              <View style={{flexDirection: 'row', flexWrap: 'wrap', marginBottom: 20}}
+                    appstorys="tags-wrapper">
+                <View style={{backgroundColor: '#ff6b6b', padding: 8, margin: 4, borderRadius: 15}}
+                      appstorys="red-tag">
+                  <Text style={{color: 'white', fontSize: 12}} appstorys="red-tag-text">React</Text>
                 </View>
-                <View style={{ backgroundColor: '#4ecdc4', padding: 8, margin: 4, borderRadius: 15 }}
-                  appstorys="teal-tag">
-                  <Text style={{ color: 'white', fontSize: 12 }} appstorys="teal-tag-text">Native</Text>
+                <View style={{backgroundColor: '#4ecdc4', padding: 8, margin: 4, borderRadius: 15}}
+                      appstorys="teal-tag">
+                  <Text style={{color: 'white', fontSize: 12}} appstorys="teal-tag-text">Native</Text>
                 </View>
-                <View style={{ backgroundColor: '#45b7d1', padding: 8, margin: 4, borderRadius: 15 }}
-                  appstorys="blue-tag">
-                  <Text style={{ color: 'white', fontSize: 12 }} appstorys="blue-tag-text">SDK</Text>
+                <View style={{backgroundColor: '#45b7d1', padding: 8, margin: 4, borderRadius: 15}}
+                      appstorys="blue-tag">
+                  <Text style={{color: 'white', fontSize: 12}} appstorys="blue-tag-text">SDK</Text>
                 </View>
               </View>
 
-              <View style={{ borderWidth: 2, borderColor: '#ddd', borderStyle: 'dashed', padding: 20, marginBottom: 15 }}
-                appstorys="dashed-border-view">
-                <Text style={{ textAlign: 'center', fontStyle: 'italic' }}
-                  appstorys="placeholder-content">
+              <View style={{borderWidth: 2, borderColor: '#ddd', borderStyle: 'dashed', padding: 20, marginBottom: 15}}
+                    appstorys="dashed-border-view">
+                <Text style={{textAlign: 'center', fontStyle: 'italic'}}
+                      appstorys="placeholder-content">
                   Placeholder Content Area
                 </Text>
               </View>
 
-              <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}
-                appstorys="icon-buttons-row">
-                <TouchableOpacity style={{ alignItems: 'center' }} appstorys="like-button">
+              <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20}}
+                    appstorys="icon-buttons-row">
+                <TouchableOpacity style={{alignItems: 'center'}} appstorys="like-button">
                   <View style={{
                     width: 40,
                     height: 40,
@@ -109,12 +109,12 @@ export default function App() {
                     justifyContent: 'center',
                     alignItems: 'center'
                   }} appstorys="like-icon-circle">
-                    <Text style={{ color: 'white', fontSize: 20 }} appstorys="like-heart-icon">♥</Text>
+                    <Text style={{color: 'white', fontSize: 20}} appstorys="like-heart-icon">♥</Text>
                   </View>
-                  <Text style={{ marginTop: 5, fontSize: 12 }} appstorys="like-button-label">Like</Text>
+                  <Text style={{marginTop: 5, fontSize: 12}} appstorys="like-button-label">Like</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={{ alignItems: 'center' }} appstorys="share-button">
+                <TouchableOpacity style={{alignItems: 'center'}} appstorys="share-button">
                   <View style={{
                     width: 40,
                     height: 40,
@@ -123,19 +123,24 @@ export default function App() {
                     justifyContent: 'center',
                     alignItems: 'center'
                   }} appstorys="share-icon-circle">
-                    <Text style={{ color: 'white', fontSize: 20 }} appstorys="share-arrow-icon">↗</Text>
+                    <Text style={{color: 'white', fontSize: 20}} appstorys="share-arrow-icon">↗</Text>
                   </View>
-                  <Text style={{ marginTop: 5, fontSize: 12 }} appstorys="share-button-label">Share</Text>
+                  <Text style={{marginTop: 5, fontSize: 12}} appstorys="share-button-label">Share</Text>
                 </TouchableOpacity>
 
-                <AppStorys.Banner />
+                <AppStorys.Stories/>
 
-                {/* <AppStorys.Floater/> */}
+                <AppStorys.Pip/>
 
-                <AppStorys.Csat />
-                <AppStorys.Modal />
+                <AppStorys.Banner/>
 
-                <TouchableOpacity style={{ alignItems: 'center' }} appstorys="save-button">
+                <AppStorys.Floater/>
+
+                <AppStorys.Csat/>
+
+                <AppStorys.Modal/>
+
+                <TouchableOpacity style={{alignItems: 'center'}} appstorys="save-button">
                   <View style={{
                     width: 40,
                     height: 40,
@@ -144,9 +149,9 @@ export default function App() {
                     justifyContent: 'center',
                     alignItems: 'center'
                   }} appstorys="save-icon-circle">
-                    <Text style={{ color: 'white', fontSize: 20 }} appstorys="save-bookmark-icon">★</Text>
+                    <Text style={{color: 'white', fontSize: 20}} appstorys="save-bookmark-icon">★</Text>
                   </View>
-                  <Text style={{ marginTop: 5, fontSize: 12 }} appstorys="save-button-label">Save</Text>
+                  <Text style={{marginTop: 5, fontSize: 12}} appstorys="save-button-label">Save</Text>
                 </TouchableOpacity>
               </View>
 
@@ -158,12 +163,12 @@ export default function App() {
                 borderRadius: 5,
                 marginBottom: 20
               }} appstorys="warning-notification">
-                <Text style={{ color: '#856404', fontWeight: 'bold' }} appstorys="warning-message">
+                <Text style={{color: '#856404', fontWeight: 'bold'}} appstorys="warning-message">
                   ⚠️ This is a warning message for testing purposes
                 </Text>
               </View>
 
-              <AppStorys.CaptureScreenButton screenName={"Home Screen React"} />
+              <AppStorys.CaptureScreenButton screenName={"Home Screen React"}/>
 
               <View
                 style={{
@@ -174,7 +179,7 @@ export default function App() {
                   alignItems: 'center'
                 }}
                 appstorys="bottom-spacer">
-                <Text style={{ color: '#6c757d' }} appstorys="footer-placeholder">
+                <Text style={{color: '#6c757d'}} appstorys="footer-placeholder">
                   Footer Placeholder
                 </Text>
               </View>
@@ -188,7 +193,7 @@ export default function App() {
                   alignItems: 'center'
                 }}
                 appstorys="bottom-spacer">
-                <Text style={{ color: '#6c757d' }} appstorys="footer-placeholder">
+                <Text style={{color: '#6c757d'}} appstorys="footer-placeholder">
                   Footer Placeholder
                 </Text>
               </View>
@@ -202,7 +207,7 @@ export default function App() {
                   alignItems: 'center'
                 }}
                 appstorys="bottom-spacer">
-                <Text style={{ color: '#6c757d' }} appstorys="footer-placeholder">
+                <Text style={{color: '#6c757d'}} appstorys="footer-placeholder">
                   Footer Placeholder
                 </Text>
               </View>
@@ -216,7 +221,7 @@ export default function App() {
                   alignItems: 'center'
                 }}
                 appstorys="bottom-spacer">
-                <Text style={{ color: '#6c757d' }} appstorys="footer-placeholder">
+                <Text style={{color: '#6c757d'}} appstorys="footer-placeholder">
                   Footer Placeholder
                 </Text>
               </View>
