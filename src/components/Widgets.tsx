@@ -11,7 +11,7 @@ import {
 import {useEffect, useMemo, useRef, useState} from "react";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignWidgets} from "../domain/sdk/types";
-import trackUserAction from "../domain/actions/trackUserAction";
+import trackEvent from "../domain/actions/trackEvent";
 
 interface WidgetImage {
   id: string;
@@ -101,7 +101,7 @@ export default function Widgets() {
     if (data && !trackedImpressionsRef.current.includes(widget_image_id)) {
       console.log(`Tracking impression for: ${widget_image_id}`); // Debug log
       trackedImpressionsRef.current.push(widget_image_id);
-      void trackUserAction(data.id, "IMP", undefined, widget_image_id);
+      void trackEvent("viewed", data.id, {"widget_image": widget_image_id})
     } else {
       console.log(`Impression already tracked for: ${widget_image_id}`); // Debug log
     }
@@ -133,7 +133,7 @@ export default function Widgets() {
           onPress={() => {
 
             if (data && item.link) {
-              void trackUserAction(data.id, "CLK", undefined, item.id);
+              void trackEvent("clicked", data.id, {"widget_image": item.id})
               void Linking.openURL(item.link);
             }
           }}
@@ -165,7 +165,7 @@ export default function Widgets() {
           onPress={() => {
 
             if (data && item.link) {
-              void trackUserAction(data.id, "CLK", undefined, item.id);
+              void trackEvent("clicked", data.id, {"widget_image": item.id})
               void Linking.openURL(item.link);
             }
           }}

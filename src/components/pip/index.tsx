@@ -12,11 +12,11 @@ import {
 import Video from "react-native-video";
 import checkForImage from "../../domain/actions/checkForImage";
 import { subscribeToPipVisibility } from '../../domain/actions/pipState';
-import trackUserAction from "../../domain/actions/trackUserAction";
 import useCampaigns from "../../domain/actions/useCampaigns";
 import { CampaignPip } from "../../domain/sdk/types";
 import PipScreen from "./screen";
 import { PipData } from "./types";
+import trackEvent from "../../domain/actions/trackEvent";
 
 export default function Pip() {
   const { width, height } = Dimensions.get("window");
@@ -75,7 +75,7 @@ export default function Pip() {
 
   useEffect(() => {
     if (data && data.id) {
-      void trackUserAction(data.id, "IMP");
+      void trackEvent("viewed", data.id)
       void checkForImage(data.details.small_video, setSmallVideoPath);
       void checkForImage(data.details.large_video, setLargeVideoPath);
     }
@@ -104,7 +104,7 @@ export default function Pip() {
         button_text: data.details.button_text,
         largeVideoUrl: `file://${largeVideoPath}`,
       });
-      void trackUserAction(data.id, "IMP");
+      void trackEvent("viewed", data.id)
     }
   }
 

@@ -26,7 +26,9 @@ export default function App() {
           <ScrollView
           // showsVerticalScrollIndicator={true}
           >
-            <View style={{ padding: 20 }} appstorys="container">
+            <View style={{
+              // padding: 20,
+            }} appstorys="container">
               <View style={{ backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15 }}
                 appstorys="main-header-view">
                 <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }} appstorys="app-title">
@@ -52,6 +54,10 @@ export default function App() {
                 onChangeText={setInputText}
                 appstorys="main-text-input"
               />
+
+              <AppStorys.Stories />
+
+              <AppStorys.Widgets />
 
               <View
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 }}
@@ -128,12 +134,12 @@ export default function App() {
                   <Text style={{ marginTop: 5, fontSize: 12 }} appstorys="share-button-label">Share</Text>
                 </TouchableOpacity>
 
-                <AppStorys.Banner />
+                {/*<AppStorys.Banner />
 
                 {/* <AppStorys.Floater/> */}
 
-                <AppStorys.Csat />
-                <AppStorys.Modal />
+                {/*<AppStorys.Csat />
+                <AppStorys.Modal /> */}
 
                 <TouchableOpacity style={{ alignItems: 'center' }} appstorys="save-button">
                   <View style={{

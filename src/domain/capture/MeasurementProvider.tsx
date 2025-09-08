@@ -3,6 +3,12 @@ import {PixelRatio, Platform, StatusBar} from 'react-native';
 import MeasurementContext from './MeasurementContext';
 import {MeasurementData} from "./types";
 import TooltipConsumer from "../../components/tooltip/consumer";
+import Modal from '../../components/Modal';
+import Banner from '../../components/Banner';
+import Floater from '../../components/Floater';
+import Csat from '../../components/Csat';
+import BottomSheet from '../../components/BottomSheet';
+import Survey from '../../components/Survey';
 
 export default function MeasurementProvider({children}: { children: React.ReactNode }) {
   // Use a ref to store the registered components.
@@ -84,7 +90,14 @@ export default function MeasurementProvider({children}: { children: React.ReactN
   return (
     <MeasurementContext.Provider value={{register, unregister, measureAll}}>
       {children}
+      <Banner/>
+      <Floater/>
+      {/* <Pip/> */}
+      <Csat/>
       <TooltipConsumer/>
+      <Survey/>
+      <BottomSheet/>
+      <Modal/>
     </MeasurementContext.Provider>
   );
 }

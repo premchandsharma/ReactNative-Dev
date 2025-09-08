@@ -68,7 +68,7 @@ class TooltipManager {
       if (this.tooltipQueue.length > 0) {
         // Small delay to ensure UI is ready
         setTimeout(() => {
-          this.showNextTooltip();
+          this.showNextTooltip(tooltipCampaign.id);
         }, 1000);
       }
     } catch (error) {
@@ -83,7 +83,7 @@ class TooltipManager {
     this.onHideTooltip?.();
   }
 
-  private async showNextTooltip() {
+  private async showNextTooltip(campaignId: string) {
     if (this.isProcessing || this.currentTooltipIndex >= this.tooltipQueue.length) {
       return;
     }
@@ -97,10 +97,10 @@ class TooltipManager {
     }
 
     this.isProcessing = true;
-    this.showOverlay(targetElement, tooltipData);
+    this.showOverlay(targetElement, tooltipData,campaignId);
   }
 
-  private onTooltipClosed() {
+  private onTooltipClosed(campaignId: string) {
     console.log('Tooltip closed');
     this.onHideTooltip?.();
     this.currentTooltipIndex++;
@@ -108,14 +108,14 @@ class TooltipManager {
 
     if (this.currentTooltipIndex < this.tooltipQueue.length) {
       setTimeout(() => {
-        void this.showNextTooltip();
+        void this.showNextTooltip(campaignId);
       }, 300);
     } else {
       this.reset();
     }
   }
 
-  private showOverlay(targetElement: MeasurementData, data: Tooltip) {
+  private showOverlay(targetElement: MeasurementData, data: Tooltip, campaignId: string) {
     try {
       const screenSize = Dimensions.get('window');
 
@@ -149,7 +149,9 @@ class TooltipManager {
       });
 
       // Track tooltip view event
-      void trackEvent('viewed', data._id);
+      void trackEvent('viewed', campaignId, {
+        "tooltip_id": data._id
+      });
 
       // Create tooltip component
       const tooltipComponent = this.createTooltipComponent({
@@ -167,7 +169,8 @@ class TooltipManager {
           cornerRadius,
           backgroundColor,
           enableBackdrop,
-        }
+        },
+        campaignId
       });
 
       this.onShowTooltip?.(tooltipComponent);
@@ -182,13 +185,15 @@ class TooltipManager {
       position,
       size,
       tooltipPosition,
-      styling
+      styling,
+      campaignId
     }: {
       data: Tooltip;
       position: { x: number; y: number };
       size: { width: number; height: number };
       tooltipPosition: TooltipPosition;
       styling: any;
+      campaignId: string;
     }
   ): React.ReactElement {
     return React.createElement(TooltipComponent, {
@@ -198,16 +203,18 @@ class TooltipManager {
       size,
       tooltipPosition,
       styling,
-      onClose: () => this.onTooltipClosed(),
-      onTooltipClick: () => this.handleClick(data),
+      onClose: () => this.onTooltipClosed(campaignId),
+      onTooltipClick: () => this.handleClick(data, campaignId),
     });
   }
 
-  private handleClick(tooltipData: Tooltip) {
+  private handleClick(tooltipData: Tooltip, campaignId: string) {
     const clickAction = tooltipData.clickAction;
     const link = tooltipData.deepLinkUrl;
 
-    void trackEvent('clicked', tooltipData._id);
+    void trackEvent('clicked', campaignId, {
+      "tooltip_id": tooltipData._id,
+    });
 
     if (clickAction === 'deepLink' && link && link.trim() !== '') {
       Linking.openURL(link).catch(err => {
@@ -215,7 +222,7 @@ class TooltipManager {
       });
     }
 
-    this.onTooltipClosed();
+    this.onTooltipClosed(campaignId);
   }
 
   private calculatePosition(

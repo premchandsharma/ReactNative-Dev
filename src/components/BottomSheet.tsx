@@ -16,6 +16,7 @@ import {
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignBottomSheet} from "../domain/sdk/types";
 import checkForImage from "../domain/actions/checkForImage";
+import trackEvent from "../domain/actions/trackEvent";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
@@ -116,7 +117,7 @@ export default function BottomSheet() {
   // Track impression and show bottom sheet
   useEffect(() => {
     if (campaignData?.id && bottomSheetDetails) {
-    //   UserActionTrack(user_id, campaignData.id, "IMP");
+    void trackEvent("viewed", campaignData.id)
 
       // Cache image if exists
       if (imageElement?.url) {
@@ -153,7 +154,7 @@ export default function BottomSheet() {
   // Handle CTA click
   const handleClick = (ctaLink?: string) => {
     if (ctaLink && campaignData?.id) {
-    //   UserActionTrack(user_id, campaignData.id, "CLK");
+      void trackEvent("clicked", campaignData.id)
 
       if (isValidUrl(ctaLink)) {
         Linking.openURL(ctaLink).catch(err =>

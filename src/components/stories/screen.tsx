@@ -12,9 +12,9 @@ import {
   View,
 } from "react-native";
 import Video from "react-native-video";
-import trackUserAction from "../../domain/actions/trackUserAction";
 import { CampaignStorySlide } from "../../domain/sdk/types";
 import { StoryData } from "./types";
+import trackEvent from "../../domain/actions/trackEvent";
 
 const closeImage = require("../../assets/images/close.png");
 const shareImage = require("../../assets/images/share.png");
@@ -88,11 +88,9 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       params.slideData.details[currentGroupIndex].slides[currentStorySlide] &&
       params.slideData.details[currentGroupIndex].slides[currentStorySlide].id) {
       if (params?.campaignId) {
-        void trackUserAction(
-          params.campaignId,
-          "IMP",
-          params.slideData.details[currentGroupIndex].slides[currentStorySlide]?.id ?? "",
-        );
+        void trackEvent("viewed", params.campaignId, {
+          "story_slide": params.slideData.details[currentGroupIndex].slides[currentStorySlide]?.id ?? ""
+        })
         setCurrentStorySlide(currentStorySlide + 1);
       }
     }
@@ -419,11 +417,9 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
                   void Linking.openURL(content[current]?.link!);
                 }
                 if (params && params.campaignId) {
-                  void trackUserAction(
-                    params.campaignId,
-                    "CLK",
-                    content[current]?.id!,
-                  );
+                  void trackEvent("clicked", params.campaignId, {
+                    "story_slide": content[current]?.id ?? ""
+                  })
                 }
               }}
             >
