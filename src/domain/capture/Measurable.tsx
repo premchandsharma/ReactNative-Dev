@@ -1,5 +1,5 @@
-import React, { useContext, useEffect, useRef } from 'react';
-import { View } from 'react-native';
+import React, {useContext, useEffect, useRef} from 'react';
+import {View} from 'react-native';
 import MeasurementContext from './MeasurementContext';
 
 interface MeasurableProps {
@@ -28,7 +28,6 @@ export default function Measurable({ appstorys, children }: MeasurableProps) {
 
   // We render a View and pass the ref to it.
   // The children are placed inside this measurable View.
-
 
   // Note: The `collapsable={false}` prop is important. It ensures that this
   // View doesn't get optimized away by the React Native layout system,
