@@ -8,6 +8,9 @@ const MeasurementContext = createContext<MeasurementContextType>({
   },
   unregister: (_: string) => {
   },
+  measure: async (_: string) => {
+    return null;
+  },
   measureAll: async () => {
     return [];
   },

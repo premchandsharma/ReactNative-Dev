@@ -1,28 +1,28 @@
 import Banner from '../../components/Banner';
-import Survey from '../../components/Survey';
+import BottomSheet from '../../components/BottomSheet';
+import CaptureScreenButton from "../../components/CaptureScreenButton";
 import Csat from '../../components/Csat';
-import Widgets from '../../components/Widgets';
-import {Attributes} from "./types";
-import trackUserAction from '../actions/trackUserAction';
-import useAppStorysStore from "./store";
-import verifyAccount from '../actions/verifyAccount';
-import trackScreen from '../actions/track-screen';
-import trackUser from '../actions/trackUser';
-import trackEvent from "../actions/trackEvent";
-import verifyUser from '../actions/verifyUser';
-import captureSurveyResponse from '../actions/captureSurveyResponse';
-import captureCsatResponse from '../actions/captureCsatResponse';
-import Stories from '../../components/stories';
+import Floater from '../../components/Floater';
+import Modal from '../../components/Modal';
 import Pip from '../../components/pip';
 import PipScreen from '../../components/pip/screen';
+import Stories from '../../components/stories';
 import StoriesScreen from '../../components/stories/screen';
-import Floater from '../../components/Floater';
-import MeasurementProvider from '../capture/MeasurementProvider';
+import Survey from '../../components/Survey';
+import Widgets from '../../components/Widgets';
+import captureCsatResponse from '../actions/captureCsatResponse';
+import captureSurveyResponse from '../actions/captureSurveyResponse';
+import setUserProperties from '../actions/SetUserProperties';
+import trackScreen from '../actions/track-screen';
+import trackEvent from "../actions/trackEvent";
+import trackUser from '../actions/trackUser';
+import trackUserAction from '../actions/trackUserAction';
+import verifyAccount from '../actions/verifyAccount';
+import verifyUser from '../actions/verifyUser';
 import Measurable from '../capture/Measurable';
-import CaptureScreenButton from "../../components/CaptureScreenButton";
-import Modal from '../../components/Modal';
-import BottomSheet from '../../components/BottomSheet';
-import { setUserProperties } from '../actions/SetUserProperties';
+import MeasurementProvider from '../capture/MeasurementProvider';
+import useAppStorysStore from "./store";
+import {Attributes} from "./types";
 
 class AppStorys {
   private isInitializing = false;
@@ -93,6 +93,16 @@ class AppStorys {
     return captureCsatResponse(csatId, rating, feedbackOption, additionalComments);
   }
 
+  public async trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
+    await this.ensureInitialized();
+    return trackEvent(event, campaignId, metadata);
+  }
+
+  public async setUserProperties(attributes: Attributes) {
+    await this.ensureInitialized();
+    return setUserProperties(attributes);
+  }
+
   private async ensureInitialized() {
     // Wait if initialization is in progress
     while (this.isInitializing) {
@@ -117,16 +127,6 @@ class AppStorys {
   public BottomSheet = BottomSheet
   public MeasurementProvider = MeasurementProvider;
   public Measurable = Measurable;
-
-  public async trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
-    await this.ensureInitialized();
-    return trackEvent(event, campaignId, metadata);
-  }
-
-  public async setUserProperties(attributes: Attributes) {
-    await this.ensureInitialized();
-    return setUserProperties(attributes);
-  }
 }
 
 export default new AppStorys();

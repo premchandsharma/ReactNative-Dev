@@ -1,14 +1,10 @@
-import { getDeviceInfo } from "./GetDeviceInfo";
-import { sendOrQueue } from "./OfflineQueue";
-import { getAccessToken, getUserId } from "../sdk/store";
+import {sendOrQueue} from "./OfflineQueue";
+import {getAccessToken, getUserId} from "../sdk/store";
+import {Attributes} from "../sdk/types";
+import getDeviceInfo from "./GetDeviceInfo";
 
-interface Attributes {
-    [key: string]: any;
-}
-
-export const setUserProperties = async (attributes: Attributes) => {
+export default async function setUserProperties(attributes: Attributes) {
     try {
-
         const access_token = await getAccessToken();
         const userId = getUserId();
 

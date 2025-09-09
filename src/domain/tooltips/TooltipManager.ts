@@ -8,12 +8,12 @@ import {Campaign} from "../sdk/types";
 
 class TooltipManager {
   private static instance: TooltipManager;
-  private tooltipQueue: Array<{ data: Tooltip; element: MeasurementData }> = [];
+  private tooltips: Array<Tooltip> = [];
   private currentTooltipIndex = 0;
   private isProcessing = false;
-  private onShowTooltip?: (tooltipComponent: React.ReactElement) => void;
+  private onShowTooltip?: (id: string, tooltipComponent: React.ReactElement) => void;
   private onHideTooltip?: () => void;
-  private measureAll?: () => Promise<MeasurementData[]>;
+  private measure?: (id: string) => Promise<MeasurementData | null>;
 
   static getInstance(): TooltipManager {
     if (!TooltipManager.instance) {
@@ -22,12 +22,12 @@ class TooltipManager {
     return TooltipManager.instance;
   }
 
-  setMeasurementFunction(measureAll: () => Promise<MeasurementData[]>) {
-    this.measureAll = measureAll;
+  setMeasurementFunction(measure: (id: string) => Promise<MeasurementData | null>) {
+    this.measure = measure;
   }
 
   setTooltipHandlers(
-    onShow: (tooltipComponent: React.ReactElement) => void,
+    onShow: (id: string, tooltipComponent: React.ReactElement) => void,
     onHide: () => void
   ) {
     this.onShowTooltip = onShow;
@@ -35,7 +35,7 @@ class TooltipManager {
   }
 
   async processTooltips(campaigns: Campaign[]) {
-    if (!this.measureAll || !this.onShowTooltip || !this.onHideTooltip) {
+    if (!this.measure || !this.onShowTooltip || !this.onHideTooltip) {
       console.warn('TooltipManager not fully initialized. Missing measurement function or handlers.');
       return;
     }
@@ -47,25 +47,13 @@ class TooltipManager {
     if (tooltipCampaigns.length === 0) return;
 
     const tooltipCampaign = tooltipCampaigns[0] as CampaignTooltips;
-    const tooltips = tooltipCampaign.details.tooltips;
 
     this.reset();
 
+    this.tooltips = tooltipCampaign.details.tooltips;
+
     try {
-      const measurements = await this.measureAll();
-
-      for (const tooltipData of tooltips) {
-        const target = tooltipData.target;
-        const targetElement = measurements.find(m => m.id === target);
-
-        if (targetElement) {
-          this.tooltipQueue.push({data: tooltipData, element: targetElement});
-        } else {
-          console.warn(`Target element "${target}" not found in measurements`);
-        }
-      }
-
-      if (this.tooltipQueue.length > 0) {
+      if (this.tooltips.length > 0) {
         // Small delay to ensure UI is ready
         setTimeout(() => {
           this.showNextTooltip(tooltipCampaign.id);
@@ -76,28 +64,36 @@ class TooltipManager {
     }
   }
 
+  // used to re-show the current tooltip after a layout change
+  reshowCurrentTooltip(campaignId: string) {
+    this.isProcessing = false;
+    return this.showNextTooltip(campaignId);
+  }
+
   reset() {
-    this.tooltipQueue = [];
+    this.tooltips = [];
     this.currentTooltipIndex = 0;
     this.isProcessing = false;
     this.onHideTooltip?.();
   }
 
   private async showNextTooltip(campaignId: string) {
-    if (this.isProcessing || this.currentTooltipIndex >= this.tooltipQueue.length) {
+    if (this.isProcessing || this.currentTooltipIndex >= this.tooltips.length) {
       return;
     }
 
-    const tooltipInfo = this.tooltipQueue[this.currentTooltipIndex];
-    const targetElement = tooltipInfo?.element;
-    const tooltipData = tooltipInfo?.data;
+    const tooltip = this.tooltips[this.currentTooltipIndex];
+    if (!tooltip) {
+      return this.onTooltipClosed(campaignId);
+    }
 
-    if (!targetElement || !tooltipData) {
-      return
+    const targetElement = await this.measure!(tooltip?.target);
+    if (!targetElement) {
+      return this.onTooltipClosed(campaignId);
     }
 
     this.isProcessing = true;
-    this.showOverlay(targetElement, tooltipData,campaignId);
+    this.showOverlay(targetElement, tooltip, campaignId);
   }
 
   private onTooltipClosed(campaignId: string) {
@@ -106,7 +102,7 @@ class TooltipManager {
     this.currentTooltipIndex++;
     this.isProcessing = false;
 
-    if (this.currentTooltipIndex < this.tooltipQueue.length) {
+    if (this.currentTooltipIndex < this.tooltips.length) {
       setTimeout(() => {
         void this.showNextTooltip(campaignId);
       }, 300);
@@ -173,7 +169,7 @@ class TooltipManager {
         campaignId
       });
 
-      this.onShowTooltip?.(tooltipComponent);
+      this.onShowTooltip?.(data.target, tooltipComponent);
     } catch (error) {
       console.error('Error showing tooltip overlay:', error);
     }

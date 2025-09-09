@@ -1,7 +1,5 @@
-import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-import { useHeaderHeight } from '@react-navigation/elements';
-import { useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, Image, Modal, Platform, View, } from "react-native";
+import {useEffect, useRef, useState} from "react";
+import {Animated, Dimensions, Image, Modal, Platform, View,} from "react-native";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -11,14 +9,14 @@ import {
 } from "react-native-gesture-handler";
 import Video from "react-native-video";
 import checkForImage from "../../domain/actions/checkForImage";
-import { subscribeToPipVisibility } from '../../domain/actions/pipState';
+import {subscribeToPipVisibility} from '../../domain/actions/pipState';
 import useCampaigns from "../../domain/actions/useCampaigns";
-import { CampaignPip } from "../../domain/sdk/types";
+import {AppStorysComponentProps, CampaignPip} from "../../domain/sdk/types";
 import PipScreen from "./screen";
-import { PipData } from "./types";
+import {PipData} from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
 
-export default function Pip() {
+export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysComponentProps) {
   const { width, height } = Dimensions.get("window");
 
   const data = useCampaigns<CampaignPip>("PIP");
@@ -37,18 +35,14 @@ export default function Pip() {
 
   let pipBottomValue = data != null && data.details.height != null ? data.details.height + 20 : 220;
 
-
-  const headerHeight = useHeaderHeight();
-  const tabBarHeight = useBottomTabBarHeight();
-
   let PIP_WIDTH = data != null && data.details.width != null ? data.details.width : 140;
   let PIP_HEIGHT = data != null && data.details.height != null ? data.details.height : 200;
 
   // Calculate the maximum x and y positions to keep PIP within screen bounds
   const MAX_X = width - PIP_WIDTH - 20;
-  const MAX_Y = height - (tabBarHeight + PIP_HEIGHT) - 20;
+  const MAX_Y = height - (bottomPadding + PIP_HEIGHT) - 20;
   const MIN_X = 20;
-  const MIN_Y = Platform.OS === "ios" ? (60 + headerHeight) : (20 + headerHeight);
+  const MIN_Y = Platform.OS === "ios" ? (60 + topPadding) : (20 + topPadding);
 
   const [isPipVisible, setPipVisible] = useState(true);
   // const [isExpanded, setExpanded] = useState(false);
@@ -60,7 +54,7 @@ export default function Pip() {
 
   const initialX = data != null && data.details.position == "right" ? (data.details.width != null ? width - (data.details.width + 20) : width - 160) : 20;
 
-  const initialY = height - (tabBarHeight + pipBottomValue)
+  const initialY = height - (bottomPadding + pipBottomValue)
 
   const pan = useRef(
     new Animated.ValueXY({
@@ -166,7 +160,7 @@ export default function Pip() {
                     translateX: pan.x
                   },
                   {
-                    translateY: Animated.subtract(pan.y, new Animated.Value(headerHeight)),
+                    translateY: Animated.subtract(pan.y, new Animated.Value(topPadding)),
                   },
                 ],
               }

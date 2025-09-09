@@ -198,6 +198,11 @@ export interface AppStorysActions {
   setAttributes: (attributes: Attributes) => void;
 }
 
+export interface AppStorysComponentProps {
+  topPadding?: number;
+  bottomPadding?: number;
+}
+
 export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
   CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet;

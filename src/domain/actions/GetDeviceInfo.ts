@@ -1,8 +1,8 @@
-import { Dimensions } from "react-native";
+import {Dimensions} from "react-native";
 import DeviceInfo from "react-native-device-info";
 import * as RNLocalize from "react-native-localize";
 
-export const getDeviceInfo = async () => {
+export default async function getDeviceInfo() {
     try {
         const { width, height } = Dimensions.get("window");
         const locale = RNLocalize.getLocales()[0];
