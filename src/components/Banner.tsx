@@ -1,16 +1,28 @@
-import {useCallback, useEffect, useState} from "react";
+import { useCallback, useEffect, useState } from "react";
 
-import {Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View} from "react-native";
-import {CampaignBanner} from "../domain/sdk/types";
+import { Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View } from "react-native";
+import { CampaignBanner } from "../domain/sdk/types";
 import checkForImage from "../domain/actions/checkForImage";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from "../domain/actions/trackEvent";
 
 export default function Banner() {
-  const {width} = Dimensions.get("window");
+  const { width } = Dimensions.get("window");
 
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [imagePath, setImagePath] = useState<string | null>(null);
+  const [bannerHeight, setBannerHeight] = useState<number>(100);
+
+  const [bottomLeftRadius, setBottomLeftRadius] = useState<number>(parseInt("0"));
+  const [bottomRightRadius, setBottomRightRadius] = useState<number>(parseInt("0"));
+  const [topLeftRadius, setTopLeftRadius] = useState<number>(parseInt("0"));
+  const [topRightRadius, setTopRightRadius] = useState<number>(parseInt("0"));
+
+  const [marginBottom, setMarginBottom] = useState<number>(parseInt("0"));
+  const [marginLeft, setMarginLeft] = useState<number>(parseInt("0"));
+  const [marginRight, setMarginRight] = useState<number>(parseInt("0"));
+
+  const [enableCloseButton, setEnableCloseButton] = useState<boolean>(false);
 
   const data = useCampaigns<CampaignBanner>("BAN");
 
@@ -20,18 +32,54 @@ export default function Banner() {
 
   useEffect(() => {
     if (data && data.id) {
-      void trackEvent("viewed", data.id)
-      void checkForImage(data.details.image, setImagePath);
+      void trackEvent("viewed", data.id);
+      void checkForImage(data.details.image, (path) => {
+        setImagePath(path);
+
+        if (data.details.styling) {
+          setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
+          setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
+          setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
+          setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
+          setMarginBottom(parseInt(data.details.styling["marginBottom"] || "0"));
+          setMarginLeft(parseInt(data.details.styling["marginLeft"] || "0"));
+          setMarginRight(parseInt(data.details.styling["marginRight"] || "0"));
+          setEnableCloseButton(Boolean(data.details.styling["enableCloseButton"]));
+        }
+
+        const bannerWidth = width - (marginLeft + marginRight);
+
+        // get natural size of the image
+        Image.getSize(
+          `file://${path}`,
+          (imgWidth, imgHeight) => {
+            const aspectRatio = imgHeight / imgWidth;
+            setBannerHeight(bannerWidth * aspectRatio);
+          },
+          (error) => {
+            console.error("Failed to get image size:", error);
+          }
+        );
+      });
     }
-  }, [data]);
+  }, [data, width]);
+
+  const bannerWidth = width - marginLeft - marginRight;
 
   return (
     <>
       {data && data.details && data.details.image !== "" && isBannerVisible && (
-        <View style={styles.container}>
+        <View style={{
+          position: "absolute",
+          left: marginLeft,
+          right: marginRight,
+          bottom: marginBottom,
+          alignItems: "center",
+          justifyContent: "flex-end",
+        }}>
           <TouchableOpacity
             activeOpacity={1}
-            onPress={() => {              
+            onPress={() => {
               if (data.details.link) {
                 void trackEvent("clicked", data.id)
                 void Linking.openURL(data.details.link);
@@ -40,28 +88,50 @@ export default function Banner() {
             style={[
               styles.banner,
               {
-                width: width,
-                height: "auto",
-                borderRadius: 6,
+                width: bannerWidth,
+                height: bannerHeight,
+                borderTopRightRadius: topRightRadius,
+                borderTopLeftRadius: topLeftRadius,
+                borderBottomRightRadius: bottomRightRadius,
+                borderBottomLeftRadius: bottomLeftRadius,
+                backgroundColor: "transparent",
+                overflow: "hidden", 
               },
             ]}
           >
-            <View style={[styles.banner, {borderRadius: 6,}]}>
               <Image
-                source={{uri: `file://${imagePath}`}}
+                source={{ uri: `file://${imagePath}` }}
                 style={{
-                  width: width,
-                  height: "auto",
-                  borderRadius: 6,
+                  width: bannerWidth,
+                  height: bannerHeight,
+                  resizeMode: "cover",
+                  borderTopRightRadius: topRightRadius,
+                  borderTopLeftRadius: topLeftRadius,
+                  borderBottomRightRadius: bottomRightRadius,
+                  borderBottomLeftRadius: bottomLeftRadius,
                 }}
               />
-            </View>
-            <TouchableOpacity onPress={closeBanner} style={styles.closeButton} activeOpacity={1}>
-              <Image
-                source={require("../assets/images/close.png")}
-                style={styles.closeIcon}
-              />
-            </TouchableOpacity>
+            {enableCloseButton && (
+              <TouchableOpacity 
+                onPress={closeBanner} 
+                style={{
+                  position: "absolute",
+                  top: 6,
+                  right: 6, // Fixed: removed marginRight from here
+                  backgroundColor: "rgba(0, 0, 0, 1)", // Semi-transparent background for better visibility
+                  borderRadius: 15,
+                  padding: 6,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }} 
+                activeOpacity={1}
+              >
+                <Image
+                  source={require("../assets/images/close.png")}
+                  style={styles.closeIcon}
+                />
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
         </View>
       )}
@@ -70,43 +140,14 @@ export default function Banner() {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    // top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    alignItems: "center",
-    justifyContent: "flex-end",
-    // marginBottom: 12,
-    zIndex: 10,  // Ensure the banner is on top
-
-  },
   banner: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(0, 0, 0, 1)",
     position: "relative",
-    // bottom: 16,
-    overflow: "visible",
-  },
-  bannerImage: {
-    width: "100%",
-    height: "100%",
-    resizeMode: "cover",
-  },
-  closeButton: {
-    position: "absolute",
-    top: 6,
-    right: 6,
-    backgroundColor: "black",
-    borderRadius: 15,
-    padding: 6,
-    justifyContent: "center",
-    alignItems: "center",
   },
   closeIcon: {
     height: 8,
     width: 8,
+    tintColor: "white",
   },
 });

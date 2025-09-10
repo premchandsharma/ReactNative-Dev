@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {useEffect, useMemo, useRef, useState} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useCampaigns from "../domain/actions/useCampaigns";
-import {CampaignWidgets} from "../domain/sdk/types";
+import { CampaignWidgets } from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
 
 interface WidgetImage {
@@ -25,58 +25,104 @@ export default function Widgets() {
   const screenWidth = Dimensions.get("window").width;
   const [activeIndex, setActiveIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [widgetHeight, setWidgetHeight] = useState<number>(100);
+
+  const [bottomLeftRadius, setBottomLeftRadius] = useState<number>(parseInt("0"));
+  const [bottomRightRadius, setBottomRightRadius] = useState<number>(parseInt("0"));
+  const [topLeftRadius, setTopLeftRadius] = useState<number>(parseInt("0"));
+  const [topRightRadius, setTopRightRadius] = useState<number>(parseInt("0"));
+  const [bottomMargin, setBottomMargin] = useState<number>(parseInt("0"));
+  const [topMargin, setTopMargin] = useState<number>(parseInt("0"));
+  const [leftMargin, setLeftMargin] = useState<number>(parseInt("0"));
+  const [rightMargin, setRightMargin] = useState<number>(parseInt("0"));
 
   const data = useCampaigns<CampaignWidgets>("WID");
 
+  // Calculate the actual content width considering margins
+  const contentWidth = screenWidth - leftMargin - rightMargin;
+
   const extendedImages = useMemo(() => {
     if (!data?.details?.widget_images) return [];
-    return data.details.type === "full"
-      ? [
-        data.details.widget_images[data.details.widget_images.length - 1],
-        ...data.details.widget_images,
-        data.details.widget_images[0],
-      ].filter((item): item is WidgetImage => item !== undefined)
-      : data.details.widget_images.filter((item): item is WidgetImage => item !== undefined);
 
-  }, [data]);
+    Image.getSize(
+      data.details.widget_images[0].image,
+      (imgWidth, imgHeight) => {
+        const aspectRatio = imgHeight / imgWidth;
+        setWidgetHeight(contentWidth * aspectRatio);
+      },
+      (error) => {
+        console.error("Failed to get image size:", error);
+      }
+    );
 
-  // useEffect(() => {
-  //     if (data && data.id) {
-  //         UserActionTrack(user_id, data.id, "IMP");
-  //     }
-  // }, [data, user_id]);
+    if (data.details.styling) {
+      setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
+      setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
+      setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
+      setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
+      setBottomMargin(parseInt(data.details.styling["bottomMargin"] || "0"));
+      setTopMargin(parseInt(data.details.styling["topMargin"] || "0"));
+      setLeftMargin(parseInt(data.details.styling["leftMargin"] || "0"));
+      setRightMargin(parseInt(data.details.styling["rightMargin"] || "0"));
+    }
+
+    // return data.details.type === "full"
+    //   ? [
+    //     data.details.widget_images[data.details.widget_images.length - 1],
+    //     ...data.details.widget_images,
+    //     data.details.widget_images[0],
+    //   ].filter((item): item is WidgetImage => item !== undefined)
+    //   : data.details.widget_images.filter((item): item is WidgetImage => item !== undefined);
+
+    return data.details.widget_images.filter((item): item is WidgetImage => item !== undefined);
+
+  }, [data, contentWidth]);
 
   const scrollToNextImage = () => {
     if (!data) return;
 
     if (!flatlistRef.current || !extendedImages.length || data.details.type !== "full") return;
 
-    // const nextIndex = activeIndex === data.details.widget_images.length - 1 ? 0 : activeIndex + 1;
+    // if (activeIndex === data.details.widget_images.length - 1) {
+    //   flatlistRef.current.scrollToOffset({
+    //     offset: contentWidth,
+    //     animated: false
+    //   });
+    //   setTimeout(() => {
+    //     scrollToNextImage();
+    //   }, 50);
+    // } else {
+    //   flatlistRef.current.scrollToOffset({
+    //     offset: contentWidth * (activeIndex + 2),
+    //     animated: true
+    //   });
+    // }
 
     if (activeIndex === data.details.widget_images.length - 1) {
-      flatlistRef.current.scrollToOffset({
-        offset: screenWidth,
-        animated: false
-      });
-      setTimeout(() => {
-        scrollToNextImage
-      }, 50);
-    } else {
-      flatlistRef.current.scrollToOffset({
-        offset: screenWidth * (activeIndex + 2),
-        animated: true
-      });
+      // Clear the interval to stop auto-scrolling
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      return;
     }
+
+    // Continue to next image
+    flatlistRef.current.scrollToOffset({
+      offset: contentWidth * (activeIndex + 1),
+      animated: true
+    });
   };
 
   useEffect(() => {
-    // if (data.details.type !== "full") return;
+    // Only start auto-scroll if we're not on the last image
+    if (data?.details.type === "full" && activeIndex < data.details.widget_images.length - 1) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
 
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(scrollToNextImage, 5000);
     }
-
-    intervalRef.current = setInterval(scrollToNextImage, 5000);
 
     return () => {
       if (intervalRef.current) {
@@ -90,8 +136,8 @@ export default function Widgets() {
     index: number
   ) => ({
     data: data,
-    length: screenWidth,
-    offset: screenWidth * index,
+    length: contentWidth,
+    offset: contentWidth * index,
     index: index,
   });
 
@@ -99,50 +145,51 @@ export default function Widgets() {
 
   const trackImpression = (widget_image_id: string) => {
     if (data && !trackedImpressionsRef.current.includes(widget_image_id)) {
-      console.log(`Tracking impression for: ${widget_image_id}`); // Debug log
+      console.log(`Tracking impression for: ${widget_image_id}`);
       trackedImpressionsRef.current.push(widget_image_id);
-      void trackEvent("viewed", data.id, {"widget_image": widget_image_id})
+      void trackEvent("viewed", data.id, { "widget_image": widget_image_id })
     } else {
-      console.log(`Impression already tracked for: ${widget_image_id}`); // Debug log
+      console.log(`Impression already tracked for: ${widget_image_id}`);
     }
   };
 
   const handleViewableItemsChanged = ({
-                                        viewableItems,
-                                      }: {
+    viewableItems,
+  }: {
     viewableItems: { item: WidgetImage }[];
   }) => {
-    viewableItems.forEach(({item}) => {
+    viewableItems.forEach(({ item }) => {
       trackImpression(item.id);
     });
   };
 
-
-  const renderFullWidthItem = ({item, index}: { item: WidgetImage; index: number }) => {
-
+  const renderFullWidthItem = ({ item, index }: { item: WidgetImage; index: number }) => {
     return (
       <View
         key={`${item.order}-${index}`}
         style={{
-          width: screenWidth * 0.94,
-          marginHorizontal: screenWidth * 0.03,
+          width: contentWidth,
+          marginHorizontal: 0,
         }}
       >
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => {
-
             if (data && item.link) {
-              void trackEvent("clicked", data.id, {"widget_image": item.id})
+              void trackEvent("clicked", data.id, { "widget_image": item.id })
               void Linking.openURL(item.link);
             }
           }}
         >
           <Image
-            source={{uri: item.image}}
+            source={{ uri: item.image }}
             style={{
-              borderRadius: 18,
-              height: data?.details.height ?? 100,
+              borderTopRightRadius: topRightRadius,
+              borderTopLeftRadius: topLeftRadius,
+              borderBottomRightRadius: bottomRightRadius,
+              borderBottomLeftRadius: bottomLeftRadius,
+              height: widgetHeight,
+              width: contentWidth,
               resizeMode: 'cover',
             }}
           />
@@ -151,30 +198,36 @@ export default function Widgets() {
     );
   };
 
-  const renderHalfWidthItem = ({item, index}: { item: WidgetImage; index: number }) => {
+  const renderHalfWidthItem = ({ item, index }: { item: WidgetImage; index: number }) => {
+    const halfItemWidth = contentWidth * 0.455;
+    const halfItemMargin = contentWidth * 0.03;
+
     return (
       <View
         key={`${item.order}-${index}`}
         style={{
-          width: screenWidth * 0.455,
-          marginLeft: screenWidth * 0.03,
+          width: halfItemWidth,
+          marginLeft: halfItemMargin,
         }}
       >
         <TouchableOpacity
           activeOpacity={1}
           onPress={() => {
-
             if (data && item.link) {
-              void trackEvent("clicked", data.id, {"widget_image": item.id})
+              void trackEvent("clicked", data.id, { "widget_image": item.id })
               void Linking.openURL(item.link);
             }
           }}
         >
           <Image
-            source={{uri: item.image}}
+            source={{ uri: item.image }}
             style={{
-              borderRadius: 12,
-              height: data?.details.height ?? 200, // Make it square
+              borderTopRightRadius: topRightRadius,
+              borderTopLeftRadius: topLeftRadius,
+              borderBottomRightRadius: bottomRightRadius,
+              borderBottomLeftRadius: bottomLeftRadius,
+              height: (widgetHeight / 2) - (contentWidth * 0.045),
+              width: halfItemWidth,
               resizeMode: 'cover',
             }}
           />
@@ -187,27 +240,23 @@ export default function Widgets() {
     if (data && data.details.type !== "full") return;
 
     const scrollPosition = event.nativeEvent.contentOffset.x;
-    const index = Math.round(scrollPosition / screenWidth);
+    const index = Math.round(scrollPosition / contentWidth);
 
-    if (index === 0) {
-      flatlistRef.current?.scrollToOffset({
-        offset: screenWidth * (extendedImages.length - 2),
-        animated: false
-      });
-      setActiveIndex(extendedImages.length - 3);
-    } else if (index === extendedImages.length - 1) {
-      flatlistRef.current?.scrollToOffset({
-        offset: screenWidth,
-        animated: false
-      });
-      setActiveIndex(0);
+    // Update active index directly without infinite loop logic
+    setActiveIndex(index);
+
+    // Restart auto-scroll timer if we're not on the last image
+    if (index < data!.details.widget_images.length - 1) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(scrollToNextImage, 5000);
+      }
     } else {
-      setActiveIndex(index - 1);
-    }
-
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(scrollToNextImage, 5000);
+      // Clear interval when we reach the last image
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
     }
   };
 
@@ -220,9 +269,9 @@ export default function Widgets() {
           style={{
             backgroundColor: activeIndex === index ? "black" : "grey",
             height: 6,
-            width: 6,
+            width: activeIndex === index ? 12 : 6,
             borderRadius: 5,
-            marginHorizontal: 4,
+            marginHorizontal: 3,
             marginVertical: 6,
           }}
         />
@@ -234,10 +283,12 @@ export default function Widgets() {
 
   return (
     <View style={{
-      // height: data.details.type === "full" ? 160 : screenWidth * 0.44,
       width: '100%',
-      marginVertical: screenWidth * 0.03,
-      paddingRight: data.details.type === "half" ? screenWidth * 0.03 : null,
+      backgroundColor: 'transparent',
+      marginTop: topMargin,
+      marginBottom: bottomMargin,
+      paddingLeft: leftMargin,
+      paddingRight: rightMargin,
     }}>
       <FlatList
         data={extendedImages}
@@ -253,21 +304,23 @@ export default function Widgets() {
         }}
         onScroll={data.details.type === "full" ? handleScroll : undefined}
         showsHorizontalScrollIndicator={false}
-        initialScrollIndex={data.details.type === "full" ? 1 : undefined}
+        initialScrollIndex={data.details.type === "full" ? 0 : undefined}
         onLayout={() => {
           if (data.details.type === "full") {
             flatlistRef.current?.scrollToOffset({
-              offset: screenWidth,
+              offset: 0,
               animated: false
             });
           }
         }}
         scrollEnabled={data.details.type === "full"}
+        contentContainerStyle={{
+          paddingRight: data.details.type === "half" ? contentWidth * 0.03 : 0,
+        }}
       />
 
       {data.details.type === "full" && (
         <View style={{
-          position: 'absolute',
           bottom: 0,
           left: 0,
           right: 0,

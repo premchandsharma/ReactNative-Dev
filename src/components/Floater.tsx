@@ -30,7 +30,7 @@ export default function Floater() {
           justifyContent: "flex-end",
           // marginRight: 20 + width * 0.15,
           // marginBottom: 20,
-          zIndex: 10,
+          // zIndex: 10,
         }}>
           <TouchableOpacity
             activeOpacity={1}

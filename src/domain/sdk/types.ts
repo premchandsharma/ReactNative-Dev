@@ -50,6 +50,9 @@ export type CampaignBanner = {
     width: null | number,
     height: null | number,
     link: null | string,
+    styling: {
+      [key: string]: string;
+    },
   }
 }
 
@@ -126,6 +129,9 @@ export type CampaignWidgets = {
         order: number;
       }
     ],
+    styling: {
+      [key: string]: string;
+    },
     campaign: string,
   },
 }

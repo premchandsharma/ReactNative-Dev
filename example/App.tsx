@@ -48,7 +48,7 @@ export default function App() {
               </View>
 
               <TextInput
-                style={{borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 15, borderRadius: 5}}
+                style={{borderWidth: 1, borderColor: '#ccc', padding: 10, borderRadius: 5}}
                 placeholder="Enter some text..."
                 value={inputText}
                 onChangeText={setInputText}
