@@ -98,6 +98,13 @@ export type CampaignCsat = {
   campaign_type: 'CSAT',
   details: {
     id: string,
+    description_text: string;
+    feedback_option: {
+      [key: string]: string;
+    },
+    highStarText: string;
+    link: string;
+    lowStarText: string,
     title: string;
     styling: {
       [key: string]: string;
@@ -105,12 +112,6 @@ export type CampaignCsat = {
     thankyouImage: string;
     thankyouText: string;
     thankyouDescription: string;
-    description_text: string;
-    feedback_option: {
-      [key: string]: string;
-    },
-    campaign: string;
-    screen: number;
   }
 }
 

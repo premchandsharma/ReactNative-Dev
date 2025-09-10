@@ -37,6 +37,9 @@ export default function CaptureScreenButton({screenName}: CaptureScreenButtonPro
 
 const styles = StyleSheet.create({
   elevationContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
     borderRadius: 12,
     elevation: 4,
     backgroundColor: 'white',
@@ -44,6 +47,7 @@ const styles = StyleSheet.create({
     shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.2,
     shadowRadius: 4,
+    zIndex: 100000,
   },
   buttonContainer: {
     padding: 16,

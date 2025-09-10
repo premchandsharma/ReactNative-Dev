@@ -2,7 +2,7 @@ import EncryptedStorage from "react-native-encrypted-storage"
 
 export default async function verifyAccount(accountId: string, appId: string) {
   try {
-    const response = await fetch('https://backend.appstorys.com/api/v1/admins/validate-account/', {
+    const response = await fetch('https://users.appstorys.com/validate-account', {
       method: 'POST',
       body: JSON.stringify({
         account_id: accountId,

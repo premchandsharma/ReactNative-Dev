@@ -20,7 +20,12 @@ interface WidgetImage {
   order: number;
 }
 
-export default function Widgets() {
+interface WidgetsProps {
+  leftPadding?: number;
+  rightPadding?: number;
+}
+
+export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsProps) {
   const flatlistRef = useRef<FlatList<WidgetImage> | null>(null);
   const screenWidth = Dimensions.get("window").width;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -39,7 +44,7 @@ export default function Widgets() {
   const data = useCampaigns<CampaignWidgets>("WID");
 
   // Calculate the actual content width considering margins
-  const contentWidth = screenWidth - leftMargin - rightMargin;
+  const contentWidth = screenWidth - leftMargin - rightMargin - leftPadding - rightPadding;
 
   const extendedImages = useMemo(() => {
     if (!data?.details?.widget_images) return [];

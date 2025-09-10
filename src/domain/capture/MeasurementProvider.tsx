@@ -9,9 +9,14 @@ import Floater from '../../components/Floater';
 import Csat from '../../components/Csat';
 import BottomSheet from '../../components/BottomSheet';
 import Survey from '../../components/Survey';
-import Pip from '../../components/pip';
+import CaptureScreenButton from '../../components/CaptureScreenButton';
 
-export default function MeasurementProvider({children}: { children: React.ReactNode }) {
+interface MeasurementProviderProps {
+  children: React.ReactNode;
+  captureScreenName?: string;
+}
+
+export default function MeasurementProvider({ children, captureScreenName }: MeasurementProviderProps) {
   // Use a ref to store the registered components.
   // This prevents re-renders every time a component registers.
   const registeredRefs = useRef(new Map<string, any>());
@@ -74,12 +79,13 @@ export default function MeasurementProvider({children}: { children: React.ReactN
       {children}
       <Banner/>
       <Floater/>
-      <Pip/>
+      {/* <Pip/> */}
       <Csat/>
       <TooltipConsumer/>
       <Survey/>
       <BottomSheet/>
       <Modal/>
+      {captureScreenName && <CaptureScreenButton screenName={captureScreenName} />}
     </MeasurementContext.Provider>
   );
 }
