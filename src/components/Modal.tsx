@@ -12,6 +12,7 @@ import {
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignModal} from "../domain/sdk/types";
 import checkForImage from "../domain/actions/checkForImage";
+import trackEvent from "../domain/actions/trackEvent";
 
 export default function Modal() {
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -36,7 +37,7 @@ export default function Modal() {
   useEffect(() => {
     if (data?.id && modalDetails && imageUrl) {
       setIsModalVisible(true);
-    //   UserActionTrack(user_id, campaignData.id, "IMP");
+    void trackEvent("viewed", data.id)
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
@@ -63,7 +64,7 @@ export default function Modal() {
   // Handle modal content click
   const handleModalClick = () => {
     if (data?.id) {
-    //   UserActionTrack(user_id, campaignData.id, "CLK");
+    void trackEvent("clicked", data.id)
     }
 
     const link = modal?.link;

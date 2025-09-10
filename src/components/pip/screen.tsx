@@ -5,6 +5,7 @@ import { togglePipVisibility } from '../../domain/actions/pipState';
 import trackUserAction from "../../domain/actions/trackUserAction";
 import { Pressable } from "react-native-gesture-handler";
 import { PipData } from "./types";
+import trackEvent from "../../domain/actions/trackEvent";
 
 interface PipScreenProps {
   params: PipData;
@@ -136,6 +137,7 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
                 void Linking.openURL(params.link);
               }
               void trackUserAction(params.id, "CLK");
+              void trackEvent("clicked", params.id)
             }}
           >
             <Text style={{

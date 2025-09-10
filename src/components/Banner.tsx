@@ -2,9 +2,9 @@ import {useCallback, useEffect, useState} from "react";
 
 import {Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View} from "react-native";
 import {CampaignBanner} from "../domain/sdk/types";
-import trackUserAction from "../domain/actions/trackUserAction";
 import checkForImage from "../domain/actions/checkForImage";
 import useCampaigns from "../domain/actions/useCampaigns";
+import trackEvent from "../domain/actions/trackEvent";
 
 export default function Banner() {
   const {width} = Dimensions.get("window");
@@ -16,12 +16,11 @@ export default function Banner() {
 
   const closeBanner = useCallback(() => {
     setIsBannerVisible(false);
-    // UserActionTrack(user_id, data.id, 'CLK');
   }, []);
 
   useEffect(() => {
     if (data && data.id) {
-      void trackUserAction(data.id, "IMP");
+      void trackEvent("viewed", data.id)
       void checkForImage(data.details.image, setImagePath);
     }
   }, [data]);
@@ -32,21 +31,29 @@ export default function Banner() {
         <View style={styles.container}>
           <TouchableOpacity
             activeOpacity={1}
-            onPress={() => {
-              void trackUserAction(data.id, "CLK");
+            onPress={() => {              
               if (data.details.link) {
+                void trackEvent("clicked", data.id)
                 void Linking.openURL(data.details.link);
               }
             }}
             style={[
               styles.banner,
-              {width: width - 20, height: data.details.height ?? 92, borderRadius: 6,},
+              {
+                width: width,
+                height: "auto",
+                borderRadius: 6,
+              },
             ]}
           >
             <View style={[styles.banner, {borderRadius: 6,}]}>
               <Image
                 source={{uri: `file://${imagePath}`}}
-                style={{width: width - 20, height: data.details.height ?? 92, borderRadius: 6,}}
+                style={{
+                  width: width,
+                  height: "auto",
+                  borderRadius: 6,
+                }}
               />
             </View>
             <TouchableOpacity onPress={closeBanner} style={styles.closeButton} activeOpacity={1}>
@@ -71,7 +78,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     alignItems: "center",
     justifyContent: "flex-end",
-    marginBottom: 12,
+    // marginBottom: 12,
     zIndex: 10,  // Ensure the banner is on top
 
   },
@@ -90,8 +97,8 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: -6,
-    right: -6,
+    top: 6,
+    right: 6,
     backgroundColor: "black",
     borderRadius: 15,
     padding: 6,

@@ -1,9 +1,9 @@
 import React, {useEffect} from "react";
 import {Image, Linking, StyleSheet, TouchableOpacity, View,} from "react-native";
 import checkForImage from "../domain/actions/checkForImage";
-import trackUserAction from "../domain/actions/trackUserAction";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignFloater} from "../domain/sdk/types";
+import trackEvent from "../domain/actions/trackEvent";
 
 export default function Floater() {
   const [imagePath, setImagePath] = React.useState<string | null>(null);
@@ -15,7 +15,7 @@ export default function Floater() {
       return;
     }
     void checkForImage(data.details.image, setImagePath);
-    void trackUserAction(data.id, "IMP")
+    void trackEvent("viewed", data.id)
   }, [data]);
 
   return (
@@ -37,7 +37,7 @@ export default function Floater() {
             onPress={() => {
 
               if (data.details.link) {
-                void trackUserAction(data.id, "CLK");
+                void trackEvent("clicked", data.id)
                 void Linking.openURL(data.details.link);
               }
             }}

@@ -2,9 +2,9 @@ import {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from 'react-native';
 import {CampaignCsat} from '../domain/sdk/types';
-import trackUserAction from "../domain/actions/trackUserAction";
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
 import useCampaigns from "../domain/actions/useCampaigns";
+import trackEvent from '../domain/actions/trackEvent';
 
 export default function Csat() {
   const [showCsat, setShowCsat] = useState(true);
@@ -52,7 +52,7 @@ export default function Csat() {
     setTimeout(async () => {
       if (data) {
         try {
-          void trackUserAction(data.id, "IMP");
+          void trackEvent("viewed", data.id)
           set_ShowCsat(true);
           await AsyncStorage.setItem('csat_loaded', 'true');
         } catch (error) {

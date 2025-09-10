@@ -28,7 +28,7 @@ export default function TooltipConsumer() {
     if (!state.id) {
       return;
     }
-    return subscribeToLayoutChange(state.id, () => TooltipManager.getInstance().reshowCurrentTooltip());
+    return subscribeToLayoutChange(state.id, () => TooltipManager.getInstance().reshowCurrentTooltip(state.id!));
   }, [state.id]);
 
   return state.content;

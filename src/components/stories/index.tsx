@@ -3,9 +3,9 @@ import { Image, Modal, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, V
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useCampaigns from "../../domain/actions/useCampaigns";
 import { CampaignStory, CampaignStoryGroup } from "../../domain/sdk/types";
-import trackUserAction from "../../domain/actions/trackUserAction";
 import StoriesScreen from "./screen";
 import { StoryData } from './types';
+import trackEvent from '../../domain/actions/trackEvent';
 
 const VIEWED_STORIES_KEY = 'viewed_stories';
 const GREY_COLOR = '#808080';
@@ -90,7 +90,7 @@ export default function Stories() {
 
   useEffect(() => {
     if (sortedDetailsData?.id) {
-      void trackUserAction(sortedDetailsData.id, 'IMP');
+      void trackEvent("viewed", sortedDetailsData.id)
     }
   }, [sortedDetailsData?.id]);
 
@@ -106,7 +106,7 @@ export default function Stories() {
               <View style={styles.storyWrapper}>
                 <TouchableWithoutFeedback onPress={() => {
                   onNavigate(sortedDetailsData, index)
-                  void trackUserAction(sortedDetailsData.id, 'CLK');
+                  void trackEvent("clicked", sortedDetailsData.id)
                 }}>
                   <View
                     style={[

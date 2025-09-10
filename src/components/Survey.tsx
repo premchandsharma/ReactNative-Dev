@@ -2,8 +2,8 @@ import {Dimensions, Image, ScrollView, Text, TextInput, TouchableOpacity, View} 
 import {useEffect, useState} from 'react';
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignSurvey} from "../domain/sdk/types";
-import trackUserAction from "../domain/actions/trackUserAction";
 import captureSurveyResponse from "../domain/actions/captureSurveyResponse";
+import trackEvent from '../domain/actions/trackEvent';
 
 export default function Survey() {
   const {height, width} = Dimensions.get('window');
@@ -15,7 +15,7 @@ export default function Survey() {
 
   useEffect(() => {
     if (data && data.id) {
-      void trackUserAction(data.id, "IMP");
+      void trackEvent("viewed", data.id)
     }
   }, [data]);
 

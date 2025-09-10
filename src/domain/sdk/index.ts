@@ -12,7 +12,7 @@ import Survey from '../../components/Survey';
 import Widgets from '../../components/Widgets';
 import captureCsatResponse from '../actions/captureCsatResponse';
 import captureSurveyResponse from '../actions/captureSurveyResponse';
-import setUserProperties from '../actions/setUserProperties';
+import setUserProperties from '../actions/SetUserProperties';
 import trackScreen from '../actions/track-screen';
 import trackEvent from "../actions/trackEvent";
 import trackUser from '../actions/trackUser';
