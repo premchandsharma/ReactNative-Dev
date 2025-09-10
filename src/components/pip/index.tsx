@@ -1,12 +1,6 @@
 import {useEffect, useRef, useState} from "react";
-import {Animated, Dimensions, Image, Modal, Platform, View,} from "react-native";
-import {
-  GestureHandlerRootView,
-  PanGestureHandler,
-  PanGestureHandlerStateChangeEvent,
-  Pressable,
-  State,
-} from "react-native-gesture-handler";
+import {Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View} from "react-native";
+import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import Video from "react-native-video";
 import checkForImage from "../../domain/actions/checkForImage";
 import {subscribeToPipVisibility} from '../../domain/actions/pipState';
@@ -102,6 +96,9 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
     }
   }
 
+  // Store the initial offset values
+  const offsetRef = useRef({x: initialX, y: initialY});
+
   const constrainPosition = (x: number, y: number) => {
     return {
       x: Math.min(Math.max(x, MIN_X), MAX_X),
@@ -109,40 +106,30 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
     };
   };
 
-  const onPanGestureEvent = Animated.event(
-    [
-      {
-        nativeEvent: {
-          translationX: pan.x,
-          translationY: pan.y,
-        },
-      },
-    ],
-    { useNativeDriver: true },
-  );
+  const panGesture = Gesture.Pan()
+    .minDistance(10) // Require minimum distance before starting pan
+    .onUpdate((event) => {
+      pan.setValue({
+        x: event.translationX,
+        y: event.translationY,
+      });
+    })
+    .onEnd((event) => {
+      const newX = offsetRef.current.x + event.translationX;
+      const newY = offsetRef.current.y + event.translationY;
 
-  const onHandlerStateChange = (event: PanGestureHandlerStateChangeEvent) => {
-    if (event.nativeEvent.oldState === State.ACTIVE) {
-      const { absoluteX, absoluteY, x, y, } = event.nativeEvent;
+      const constrainedPosition = constrainPosition(newX, newY);
 
-      const constrainedPosition = constrainPosition(absoluteX - x, absoluteY - y);
-
+      offsetRef.current = constrainedPosition;
       pan.setOffset(constrainedPosition);
       pan.setValue({ x: 0, y: 0 });
-
-    }
-  };
+    })
+    .simultaneousWithExternalGesture(); // Allow other gestures to work simultaneously
 
   return (
-    <GestureHandlerRootView style={{
-      position: 'absolute',
-      zIndex: 999998,
-    }}>
+    <View style={[StyleSheet.absoluteFill, {zIndex: 999998}]} pointerEvents="box-none">
       {data && isPipVisible && (
-        <PanGestureHandler
-          onGestureEvent={onPanGestureEvent}
-          onHandlerStateChange={onHandlerStateChange}
-        >
+        <GestureDetector gesture={panGesture}>
           <Animated.View
             style={
               {
@@ -201,6 +188,8 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
+                zIndex: 1000000, // Higher z-index than the container
+                elevation: 1000000, // Higher elevation for Android
               }}
             >
               <Image
@@ -222,6 +211,8 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
                 backgroundColor: "black",
                 borderRadius: 20,
                 display: "flex",
+                zIndex: 1000000, // Higher z-index than the container
+                elevation: 1000000, // Higher elevation for Android
               }}
             >
               <Image
@@ -246,6 +237,8 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
+                  zIndex: 1000000, // Higher z-index than the container
+                  elevation: 1000000, // Higher elevation for Android
                 }}
               >
                 <Image
@@ -256,10 +249,8 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
                   }}
                 />
               </Pressable>}
-
-
           </Animated.View>
-        </PanGestureHandler>
+        </GestureDetector>
       )}
 
       <Modal
@@ -276,6 +267,6 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
           />
         )}
       </Modal>
-    </GestureHandlerRootView>
+    </View>
   );
 };
