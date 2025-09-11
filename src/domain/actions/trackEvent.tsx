@@ -1,7 +1,7 @@
 import {getAccessToken, getUserId} from "../sdk/store";
 import {Attributes} from "../sdk/types";
-import getDeviceInfo from "./GetDeviceInfo";
-import { sendOrQueue } from "./OfflineQueue";
+import getDeviceInfo from "./getDeviceInfo";
+import {sendOrQueue} from "./offlineQueue";
 
 export default async function trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
   try {

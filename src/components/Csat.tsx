@@ -1,5 +1,4 @@
 import {useEffect, useState} from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from 'react-native';
 import {CampaignCsat} from '../domain/sdk/types';
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
@@ -7,60 +6,30 @@ import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from '../domain/actions/trackEvent';
 
 export default function Csat() {
-  const [showCsat, setShowCsat] = useState(true);
+  const [showCsat, setShowCsat] = useState(false);
   const [selectedStars, setSelectedStars] = useState(0);
   const [showThanks, setShowThanks] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [additionalComments, setAdditionalComments] = useState('');
 
-  const [_showCsat, set_ShowCsat] = useState(false);
-  const [csatLocalValue, setCsatLocalValue] = useState('');
-
   const data = useCampaigns<CampaignCsat>("CSAT");
 
   useEffect(() => {
-    if (data && data.id) {
-      _initializeCsat();
-      void _ifshowCsat();
-    }
-    console.log(csatLocalValue)
-  }, [data]);
-
-  const _initializeCsat = () => {
-    if (!data) return;
-
-  };
-
-  const _ifshowCsat = async () => {
-    try {
-      const csatLoaded = await AsyncStorage.getItem('csat_loaded');
-      setCsatLocalValue(csatLoaded || '');
-
-      if (!csatLoaded || csatLoaded !== 'true') {
-        await _scheduleCsatDisplay();
-      }
-    } catch (error) {
-      console.error('Error checking CSAT status:', error);
-    }
-  };
-
-  const _scheduleCsatDisplay = async () => {
-    const delayDisplay = data?.details?.styling?.delayDisplay;
-    const delay = delayDisplay ? parseInt(delayDisplay) : 0;
-
-    setTimeout(async () => {
-      if (data) {
-        try {
+    if (data && data.id && !viewed.has(data.id)) {
+      try {
+        const delayDisplay = data.details?.styling?.delayDisplay;
+        const delay = delayDisplay ? parseInt(delayDisplay) : 0;
+        setTimeout(async () => {
           void trackEvent("viewed", data.id)
-          set_ShowCsat(true);
-          await AsyncStorage.setItem('csat_loaded', 'true');
-        } catch (error) {
-          console.error('Error saving CSAT status:', error);
-        }
+          setShowCsat(true);
+          viewed.add(data.id);
+        }, delay * 1000);
+      } catch (error) {
+        console.error('Error checking CSAT status:', error);
       }
-    }, delay * 1000);
-  };
+    }
+  }, [data]);
 
   const handleStarPress = (index: number) => {
     const starCount = index + 1;
@@ -70,7 +39,6 @@ export default function Csat() {
       setTimeout(() => {
         setShowThanks(true);
         if (data) {
-          console.log(starCount);
           void captureCsatResponse(
             data.details.id,
             starCount,
@@ -86,7 +54,6 @@ export default function Csat() {
 
   const handleSubmitFeedback = () => {
     if (data) {
-      console.log(selectedStars);
       void captureCsatResponse(
         data.details.id,
         selectedStars,
@@ -97,7 +64,7 @@ export default function Csat() {
     setShowThanks(true);
   };
 
-  if (!showCsat || !_showCsat || !data || !data.details) {
+  if (!showCsat || !data || !data.details) {
     return null;
   }
 
@@ -342,3 +309,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
+
+const viewed = new Set<string>();

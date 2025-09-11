@@ -1,7 +1,7 @@
-import {sendOrQueue} from "./OfflineQueue";
+import {sendOrQueue} from "./offlineQueue";
 import {getAccessToken, getUserId} from "../sdk/store";
 import {Attributes} from "../sdk/types";
-import getDeviceInfo from "./GetDeviceInfo";
+import getDeviceInfo from "./getDeviceInfo";
 
 export default async function setUserProperties(attributes: Attributes) {
     try {
