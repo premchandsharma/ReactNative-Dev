@@ -1,7 +1,7 @@
 import WebSocketClient from "./websocket";
 import useAppStorysStore, {getAccessToken, getUserId} from "../../sdk/store";
 import {TrackScreenConfig, TrackScreenResponse} from "./types";
-import {useCaptureServiceStore} from "../../capture/CaptureService";
+import CaptureService, {useCaptureServiceStore} from "../../capture/CaptureService";
 import TooltipManager from "../../tooltips/TooltipManager";
 
 let client: WebSocketClient | null = null;
@@ -57,10 +57,10 @@ export default async function trackScreen(screenName: string) {
   });
   if (response) {
     console.log(response);
+    CaptureService.setup(response.metadata.screen_capture_enabled, screenName);
     const campaigns = response.campaigns || [];
-    useAppStorysStore.getState().setCampaigns(campaigns);
-    useCaptureServiceStore.getState().setScreenCaptureEnabled(response.metadata.screen_capture_enabled);
     if (campaigns.length > 0) {
+      useAppStorysStore.getState().setCampaigns(campaigns);
       await TooltipManager.getInstance().processTooltips(campaigns)
     }
   }

@@ -1,8 +1,8 @@
-import { AppStorys } from '@appstorys/appstorys-react-native';
-import { useEffect, useState } from "react";
-import { Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {AppStorys} from '@appstorys/appstorys-react-native';
+import {useEffect, useState} from "react";
+import {Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View} from "react-native";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
 void AppStorys.initialize(
   "9e1b21a2-350a-4592-918c-2a19a73f249a",
@@ -21,11 +21,8 @@ export default function App() {
   }, []);
 
   return (
-    <AppStorys.MeasurementProvider
-      captureScreenName="Home Screen React"
-      >
+    <AppStorys.MeasurementProvider>
       <GestureHandlerRootView>
-
         <SafeAreaProvider>
           <SafeAreaView>
             <View style={{ backgroundColor: 'white' }}>
@@ -33,8 +30,8 @@ export default function App() {
                 contentContainerStyle={{ flexGrow: 1 }}
               // showsVerticalScrollIndicator={true}
               >
-                <View style={{ 
-                  padding: 20 
+                <View style={{
+                  padding: 20
                 }} appstorys="container">
                   <View style={{ backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15 }}
                     appstorys="main-header-view">
@@ -64,7 +61,7 @@ export default function App() {
 
                   <AppStorys.Stories />
 
-                  <AppStorys.Widgets 
+                  <AppStorys.Widgets
                   leftPadding={20}
                   rightPadding={20}
                   />

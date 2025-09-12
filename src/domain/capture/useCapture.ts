@@ -3,7 +3,7 @@ import CaptureService from "./CaptureService";
 import {Alert} from "react-native";
 import MeasurementContext from "./MeasurementContext";
 
-export default function useCapture(screenName: string) {
+export default function useCapture() {
   const {measureAll} = useContext(MeasurementContext);
   return useCallback(async () => {
     try {
@@ -24,7 +24,7 @@ export default function useCapture(screenName: string) {
         });
       });
 
-      const success = await CaptureService.takeScreenshot(screenName);
+      const success = await CaptureService.takeScreenshot();
 
       if (success) {
         Alert.alert('Success', 'Screen captured successfully');
@@ -34,5 +34,5 @@ export default function useCapture(screenName: string) {
     } catch (error) {
       Alert.alert('Error', `Failed to capture screen: ${error}`);
     }
-  }, [screenName]);
+  }, []);
 }
