@@ -4,6 +4,7 @@ import {CampaignCsat} from '../domain/sdk/types';
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from '../domain/actions/trackEvent';
+import usePadding from "../domain/actions/usePadding";
 
 export default function Csat() {
   const [showCsat, setShowCsat] = useState(false);
@@ -14,6 +15,7 @@ export default function Csat() {
   const [additionalComments, setAdditionalComments] = useState('');
 
   const data = useCampaigns<CampaignCsat>("CSAT");
+  const padding = usePadding('CSAT')?.bottom || 0;
 
   useEffect(() => {
     if (data && data.id && !viewed.has(data.id)) {
@@ -76,8 +78,26 @@ export default function Csat() {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, {bottom: padding + 10}]}>
       <View style={[styles.card, {backgroundColor: data.details.styling.csatBackgroundColor}]}>
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 20,
+            right: 20,
+            backgroundColor: data.details.styling['csatCtaBackgroundColor'],
+            borderRadius: 16,
+            padding: 8,
+            zIndex: 1,
+          }}
+          onPress={() => setShowCsat(false)}
+        >
+          <Image source={require("../assets/images/close.png")} style={{
+            tintColor: data.details.styling['csatCtaTextColor'],
+            width: 13,
+            height: 13,
+          }}/>
+        </TouchableOpacity>
         <ScrollView>
           {showThanks ? (
             <View style={styles.thanksContainer}>
@@ -191,24 +211,6 @@ export default function Csat() {
             </View>
           )}
         </ScrollView>
-
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            backgroundColor: data.details.styling['csatCtaBackgroundColor'],
-            borderRadius: 16,
-            padding: 8,
-          }}
-          onPress={() => setShowCsat(false)}
-        >
-          <Image source={require("../assets/images/close.png")} style={{
-            tintColor: data.details.styling['csatCtaTextColor'],
-            width: 13,
-            height: 13,
-          }}/>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -217,7 +219,6 @@ export default function Csat() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 10,
     left: 10,
     right: 10,
   },
@@ -227,7 +228,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingLeft: 40,
     paddingRight: 40,
-    position: 'relative',
   },
   thanksContainer: {
     alignItems: 'center',

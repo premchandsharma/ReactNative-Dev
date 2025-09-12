@@ -1,14 +1,16 @@
-import React, {useEffect} from "react";
+import {useEffect, useState} from "react";
 import {Image, Linking, StyleSheet, TouchableOpacity, View,} from "react-native";
 import checkForImage from "../domain/actions/checkForImage";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignFloater} from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
+import usePadding from "../domain/actions/usePadding";
 
 export default function Floater() {
-  const [imagePath, setImagePath] = React.useState<string | null>(null);
+  const [imagePath, setImagePath] = useState<string | null>(null);
 
   const data = useCampaigns<CampaignFloater>("FLT");
+  const padding = usePadding('FLT')?.bottom || 0;
 
   useEffect(() => {
     if (!data) {
@@ -26,7 +28,7 @@ export default function Floater() {
           // top: 0,
           left: data.details.position == "left" ? 16 : undefined,
           right: data.details.position == "right" || data.details.position == "" || data.details.position == null ? (16 + (data.details.width ?? 60)) : undefined,
-          bottom: 20,
+          bottom: 20 + padding,
           justifyContent: "flex-end",
           // marginRight: 20 + width * 0.15,
           // marginBottom: 20,
@@ -35,7 +37,6 @@ export default function Floater() {
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => {
-
               if (data.details.link) {
                 void trackEvent("clicked", data.id)
                 void Linking.openURL(data.details.link);
@@ -47,9 +48,6 @@ export default function Floater() {
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: "rgba(0, 0, 0, 0.7)",
-              position: "absolute",
-              // right: 20,
-              // bottom: 20,
               overflow: "hidden",
               borderRadius: 100,
             }}

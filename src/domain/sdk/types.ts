@@ -195,6 +195,7 @@ export interface AppStorysStore {
   appId: string;
   accountId: string;
   attributes?: Attributes;
+  screenOptions?: ScreenOptions;
 }
 
 export interface AppStorysActions {
@@ -203,12 +204,22 @@ export interface AppStorysActions {
   setAppId: (appId: string) => void;
   setAccountId: (accountId: string) => void;
   setAttributes: (attributes: Attributes) => void;
+  setScreenOptions: (options?: ScreenOptions) => void;
 }
 
-export interface AppStorysComponentProps {
-  topPadding?: number;
-  bottomPadding?: number;
+export type ComponentPadding = {
+  top?: number;
+  bottom?: number;
 }
+
+export type ScreenOptions = {
+  overlayPadding?: number | ComponentPadding | {
+    pip?: number | ComponentPadding;
+    floater?: number;
+    banner?: number;
+    csat?: number;
+  };
+};
 
 export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
