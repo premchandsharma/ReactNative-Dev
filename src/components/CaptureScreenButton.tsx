@@ -2,16 +2,13 @@ import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, View} from 'react
 import {useCaptureServiceStore} from "../domain/capture/CaptureService";
 import useCapture from "../domain/capture/useCapture";
 
-interface CaptureScreenButtonProps {
-  screenName: string;
-}
-
-export default function CaptureScreenButton({screenName}: CaptureScreenButtonProps) {
+export default function CaptureScreenButton() {
   const enabled = useCaptureServiceStore(state => state.isScreenCaptureEnabled);
   const isCapturing = useCaptureServiceStore(state => state.isCapturing);
-  const handleCapture = useCapture(screenName);
+  const screenName = useCaptureServiceStore(state => state.screenName);
+  const handleCapture = useCapture();
 
-  if (!enabled) {
+  if (!enabled || !screenName) {
     return null;
   }
 
