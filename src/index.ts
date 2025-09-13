@@ -13,8 +13,9 @@ import Measurable from "./domain/capture/Measurable";
 import MeasurementProvider from "./domain/capture/MeasurementProvider";
 import Modal from './components/Modal';
 import BottomSheet from './components/BottomSheet';
+import {ScreenOptions} from "./domain/sdk/types";
 
-export { AppStorys };
+export {AppStorys};
 export {
   Banner, Floater, Pip, Stories, StoriesScreen, PipScreen, Survey,
   // Tooltip,
@@ -23,3 +24,4 @@ export {
   Measurable,
   MeasurementProvider,
 };
+export type {ScreenOptions as AppStorysScreenOptions};

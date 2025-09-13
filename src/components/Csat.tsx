@@ -1,9 +1,10 @@
-import {useEffect, useState} from 'react';
-import {Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from 'react-native';
-import {CampaignCsat} from '../domain/sdk/types';
+import { useEffect, useState } from 'react';
+import { Image, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from 'react-native';
+import { CampaignCsat } from '../domain/sdk/types';
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from '../domain/actions/trackEvent';
+import usePadding from "../domain/actions/usePadding";
 
 export default function Csat() {
   const [showCsat, setShowCsat] = useState(false);
@@ -14,12 +15,18 @@ export default function Csat() {
   const [additionalComments, setAdditionalComments] = useState('');
 
   const data = useCampaigns<CampaignCsat>("CSAT");
+  const padding = usePadding('CSAT')?.bottom || 0;
 
   useEffect(() => {
     if (data && data.id && !viewed.has(data.id)) {
       try {
-        const delayDisplay = data.details?.styling?.delayDisplay;
-        const delay = delayDisplay ? parseInt(delayDisplay) : 0;
+
+        const displayDelay = data.details?.styling?.["displayDelay"];
+        const delay =
+          typeof displayDelay === "string"
+            ? parseInt(displayDelay)
+            : displayDelay || 0;
+
         setTimeout(async () => {
           void trackEvent("viewed", data.id)
           setShowCsat(true);
@@ -76,72 +83,94 @@ export default function Csat() {
   );
 
   return (
-    <View style={styles.container}>
-      <View style={[styles.card, {backgroundColor: data.details.styling.csatBackgroundColor}]}>
+    <View style={[styles.container, { bottom: padding + 10 }]}>
+      <View style={[styles.card, { backgroundColor: data.details.styling["csatBackgroundColor"] }]}>
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: data.details.styling["csatCtaBackgroundColor"],
+            borderRadius: 16,
+            padding: 8,
+            zIndex: 1,
+          }}
+          onPress={() => setShowCsat(false)}
+        >
+          <Image source={require("../assets/images/close.png")}
+            style={{
+              tintColor: data.details.styling["csatCtaTextColor"],
+              width: 13,
+              height: 13,
+            }} />
+        </TouchableOpacity>
         <ScrollView>
           {showThanks ? (
             <View style={styles.thanksContainer}>
               {data.details.thankyouImage && (
                 <Image
-                  source={{uri: data.details.thankyouImage}}
+                  source={{ uri: data.details.thankyouImage }}
                   style={styles.thanksImage}
                 />
               )}
-              <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
+              <Text style={[styles.thanksTitle, { color: data.details.styling.csatTitleColor }]}>
                 {data.details.thankyouText}
               </Text>
-              <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
+              <Text style={[styles.thanksDescription, { color: data.details.styling.csatDescriptionTextColor }]}>
                 {data.details.thankyouDescription}
               </Text>
               <TouchableOpacity
-                style={[styles.button, {backgroundColor: data.details.styling.csatCtaBackgroundColor}]}
-                onPress={() => setShowCsat(false)}
+                style={[styles.button, { backgroundColor: data.details.styling["csatCtaBackgroundColor"] }]}
+                onPress={() => {
+                  setShowCsat(false);
+                  if (selectedStars > 3) {
+                    void Linking.openURL(data.details.link);
+                  }
+                }}
+
               >
-                <Text style={[styles.buttonText, {color: data.details.styling.csatCtaTextColor}]}>
-                  Done
+                <Text style={[styles.buttonText, { color: data.details.styling["csatCtaTextColor"] }]}>
+                  {
+                    selectedStars > 3 ? (data.details.highStarText || "Done") : (data.details.lowStarText || "Done")
+                  }
                 </Text>
               </TouchableOpacity>
             </View>
           ) : (
             <View>
-              <Text style={[styles.title, {color: data.details.styling.csatTitleColor}]}>
+              <Text style={[styles.title, { color: data.details.styling["csatTitleColor"] }]}>
                 {data.details.title}
               </Text>
-              <Text style={[styles.description, {color: data.details.styling.csatDescriptionTextColor}]}>
+              <Text style={[styles.description, { color: data.details.styling["csatDescriptionTextColor"] }]}>
                 {data.details.description_text}
               </Text>
               <View style={styles.starsContainer}>
-                {Array.from({length: 5}).map((_, index) => (
+                {Array.from({ length: 5 }).map((_, index) => (
                   <TouchableOpacity
                     key={index}
                     onPress={() => handleStarPress(index)}
                     activeOpacity={1}
                   >
-                    {/* <Text style={[
-                      styles.star,
-                      { color: index < selectedStars ? '#FFD700' : '#B0B0B0' }
-                    ]}>
-                      ★
-                    </Text> */}
                     <Image source={require("../assets/images/star.png")} style={{
-                      tintColor: index < selectedStars ? '#FFD700' : '#B0B0B0',
+                      tintColor:
+                        index < selectedStars
+                          ? selectedStars > 3
+                            ? data.details.styling["csatHighStarColor"]
+                            : data.details.styling["csatLowStarColor"]
+                          : data.details.styling["csatUnselectedStarColor"],
                       width: 32,
                       height: 32,
-                      marginHorizontal: 3,
-                    }}/>
+                      marginEnd: 6,
+                    }} />
                   </TouchableOpacity>
                 ))}
               </View>
 
-              {!showFeedback ? (
-                <Text style={[styles.rateText, {color: data.details.styling.csatDescriptionTextColor}]}>
-                  Rate Us!
-                </Text>
-              ) : (
+              {showFeedback && (
                 <View style={styles.feedbackContainer}>
-                  <Text style={[styles.feedbackPrompt, {color: data.details.styling.csatDescriptionTextColor}]}>
+                  {/* <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
                     Please tell us what went wrong.
-                  </Text>
+                  </Text> */}
                   {feedbackOptions.map((option) => (
                     <TouchableOpacity
                       activeOpacity={1}
@@ -149,29 +178,37 @@ export default function Csat() {
                       style={[
                         styles.optionButton,
                         {
-                          backgroundColor: selectedOption === option.name
-                            ? data.details.styling.csatSelectedOptionBackgroundColor
-                            : data.details.styling.csatBackgroundColor,
-                          borderColor: data.details.styling.csatOptionStrokeColor
-                        }
+                          backgroundColor:
+                            selectedOption === option.name
+                              ? data.details.styling["csatSelectedOptionBackgroundColor"]
+                              : data.details.styling["csatOptionBoxColour"],
+                          borderColor:
+                            selectedOption === option.name
+                              ? data.details.styling["csatSelectedOptionStrokeColor"]
+                              : data.details.styling["csatOptionStrokeColor"],
+                        },
                       ]}
                       onPress={() => setSelectedOption(option.name)}
                     >
-                      <Text style={[
-                        styles.optionText,
-                        {
-                          color: selectedOption === option.name
-                            ? data.details.styling.csatSelectedOptionTextColor
-                            : data.details.styling.csatOptionTextColour
-                        }
-                      ]}>
+                      <Text
+                        style={[
+                          styles.optionText,
+                          {
+                            color:
+                              selectedOption === option.name
+                                ? data.details.styling["csatSelectedOptionTextColor"]
+                                : data.details.styling["csatOptionTextColour"],
+                          },
+                        ]}
+                      >
                         {option.name}
                       </Text>
                     </TouchableOpacity>
                   ))}
 
+
                   <TextInput
-                    style={[styles.input, {color: data.details.styling.csatDescriptionTextColor}]}
+                    style={[styles.input, { color: data.details.styling["csatAdditionalTextColor"] }]}
                     value={additionalComments}
                     onChangeText={setAdditionalComments}
                     placeholder="Your feedback"
@@ -179,10 +216,12 @@ export default function Csat() {
                   />
 
                   <TouchableOpacity
-                    style={[styles.submitButton, {backgroundColor: data.details.styling.csatCtaBackgroundColor}]}
-                    onPress={handleSubmitFeedback}
+                    style={[styles.submitButton, { backgroundColor: data.details.styling["csatCtaBackgroundColor"] }]}
+                    onPress={
+                      handleSubmitFeedback
+                    }
                   >
-                    <Text style={[styles.submitText, {color: data.details.styling.csatCtaTextColor}]}>
+                    <Text style={[styles.submitText, { color: data.details.styling["csatCtaTextColor"] }]}>
                       Submit
                     </Text>
                   </TouchableOpacity>
@@ -191,24 +230,6 @@ export default function Csat() {
             </View>
           )}
         </ScrollView>
-
-        <TouchableOpacity
-          style={{
-            position: 'absolute',
-            top: 20,
-            right: 20,
-            backgroundColor: data.details.styling['csatCtaBackgroundColor'],
-            borderRadius: 16,
-            padding: 8,
-          }}
-          onPress={() => setShowCsat(false)}
-        >
-          <Image source={require("../assets/images/close.png")} style={{
-            tintColor: data.details.styling['csatCtaTextColor'],
-            width: 13,
-            height: 13,
-          }}/>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -217,7 +238,6 @@ export default function Csat() {
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 10,
     left: 10,
     right: 10,
   },
@@ -227,7 +247,6 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingLeft: 40,
     paddingRight: 40,
-    position: 'relative',
   },
   thanksContainer: {
     alignItems: 'center',
@@ -256,6 +275,7 @@ const styles = StyleSheet.create({
   starsContainer: {
     flexDirection: 'row',
     marginTop: 16,
+    marginBottom: 12,
   },
   rateText: {
     fontSize: 16,

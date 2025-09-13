@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import {useCallback, useEffect, useState} from "react";
 
-import { Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View } from "react-native";
-import { CampaignBanner } from "../domain/sdk/types";
+import {Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View} from "react-native";
+import {CampaignBanner} from "../domain/sdk/types";
 import checkForImage from "../domain/actions/checkForImage";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from "../domain/actions/trackEvent";
+import usePadding from "../domain/actions/usePadding";
 
 export default function Banner() {
   const { width } = Dimensions.get("window");
@@ -25,6 +26,7 @@ export default function Banner() {
   const [enableCloseButton, setEnableCloseButton] = useState<boolean>(false);
 
   const data = useCampaigns<CampaignBanner>("BAN");
+  const padding = usePadding('BAN')?.bottom || 0;
 
   const closeBanner = useCallback(() => {
     setIsBannerVisible(false);
@@ -73,7 +75,7 @@ export default function Banner() {
           position: "absolute",
           left: marginLeft,
           right: marginRight,
-          bottom: marginBottom,
+          bottom: marginBottom + padding,
           alignItems: "center",
           justifyContent: "flex-end",
         }}>
@@ -95,7 +97,7 @@ export default function Banner() {
                 borderBottomRightRadius: bottomRightRadius,
                 borderBottomLeftRadius: bottomLeftRadius,
                 backgroundColor: "transparent",
-                overflow: "hidden", 
+                overflow: "hidden",
               },
             ]}
           >
@@ -112,8 +114,8 @@ export default function Banner() {
                 }}
               />
             {enableCloseButton && (
-              <TouchableOpacity 
-                onPress={closeBanner} 
+              <TouchableOpacity
+                onPress={closeBanner}
                 style={{
                   position: "absolute",
                   top: 6,
@@ -123,7 +125,7 @@ export default function Banner() {
                   padding: 6,
                   justifyContent: "center",
                   alignItems: "center",
-                }} 
+                }}
                 activeOpacity={1}
               >
                 <Image

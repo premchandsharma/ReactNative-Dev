@@ -5,15 +5,20 @@ import Video from "react-native-video";
 import checkForImage from "../../domain/actions/checkForImage";
 import {subscribeToPipVisibility} from '../../domain/actions/pipState';
 import useCampaigns from "../../domain/actions/useCampaigns";
-import {AppStorysComponentProps, CampaignPip} from "../../domain/sdk/types";
+import {CampaignPip} from "../../domain/sdk/types";
 import PipScreen from "./screen";
 import {PipData} from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
+import usePadding from "../../domain/actions/usePadding";
 
-export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysComponentProps) {
-  const { width, height } = Dimensions.get("window");
+export default function Pip() {
+  const {width, height} = Dimensions.get("window");
 
   const data = useCampaigns<CampaignPip>("PIP");
+
+  const padding = usePadding('PIP');
+  const topPadding = padding?.top || 0;
+  const bottomPadding = padding?.bottom || 0;
 
   useEffect(() => {
     const unsubscribe = subscribeToPipVisibility((isVisible) => {
@@ -58,7 +63,7 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
   ).current;
 
   useEffect(() => {
-    pan.setOffset({ x: initialX, y: initialY });
+    pan.setOffset({x: initialX, y: initialY});
   }, [])
 
   useEffect(() => {
@@ -91,6 +96,7 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
         link,
         button_text: data.details.button_text,
         largeVideoUrl: `file://${largeVideoPath}`,
+        styling: data.details.styling,
       });
       void trackEvent("viewed", data.id)
     }
@@ -122,12 +128,13 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
 
       offsetRef.current = constrainedPosition;
       pan.setOffset(constrainedPosition);
-      pan.setValue({ x: 0, y: 0 });
+      pan.setValue({x: 0, y: 0});
     })
     .simultaneousWithExternalGesture(); // Allow other gestures to work simultaneously
 
   return (
-    <View style={[StyleSheet.absoluteFill, {zIndex: 999998}]} pointerEvents="box-none">
+    <View style={[StyleSheet.absoluteFill, {zIndex: 999998, top: topPadding, bottom: bottomPadding}]}
+          pointerEvents="box-none">
       {data && isPipVisible && (
         <GestureDetector gesture={panGesture}>
           <Animated.View
@@ -153,13 +160,14 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
               }
             }
           >
-            <View onTouchEnd={expandPip} style={{ flex: 1 }}>
+            <Pressable onPress={expandPip} style={{flex: 1}}>
               {data.details.small_video &&
                 data.details.large_video && (
                   <Video
                     repeat={true}
                     resizeMode="contain"
                     muted={mute}
+                    controls={false}
                     source={{
                       uri: `file://${smallVideoPath}`,
                     }}
@@ -174,7 +182,7 @@ export default function Pip({topPadding = 0, bottomPadding = 0}: AppStorysCompon
                     }}
                   />
                 )}
-            </View>
+            </Pressable>
 
             <Pressable
               onPress={closePip}

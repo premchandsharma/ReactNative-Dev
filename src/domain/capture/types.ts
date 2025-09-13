@@ -11,11 +11,13 @@ export interface LayoutInfo {
 }
 
 export interface CaptureServiceStore {
+  screenName: string | null;
   isCapturing: boolean;
   isScreenCaptureEnabled: boolean;
 }
 
 export interface CaptureServiceActions {
+  setScreenName: (name: string | null) => void;
   setScreenCaptureEnabled: (enabled: boolean) => void;
   setIsCapturing: (capturing: boolean) => void;
 }

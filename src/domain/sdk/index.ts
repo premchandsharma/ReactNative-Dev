@@ -22,7 +22,7 @@ import verifyUser from '../actions/verifyUser';
 import Measurable from '../capture/Measurable';
 import MeasurementProvider from '../capture/MeasurementProvider';
 import useAppStorysStore from "./store";
-import {Attributes} from "./types";
+import {Attributes, ScreenOptions} from "./types";
 
 class AppStorys {
   private isInitializing = false;
@@ -52,10 +52,7 @@ class AppStorys {
     this.isInitializing = false;
   }
 
-  public async trackScreen(screenName: string) {
-    await this.ensureInitialized();
-    await trackScreen(screenName);
-  }
+  public Stories = Stories;
 
   public async trackUser(attributes?: Attributes) {
     await this.ensureInitialized();
@@ -66,8 +63,6 @@ class AppStorys {
     await this.ensureInitialized();
     return trackUserAction(campaignId, action);
   }
-
-  public Stories = Stories;
 
   public async verifyUser(attributes?: Attributes) {
     await this.ensureInitialized();
@@ -120,6 +115,11 @@ class AppStorys {
   public PipScreen = PipScreen;
   public Banner = Banner;
   public CaptureScreenButton = CaptureScreenButton;
+
+  public async trackScreen(screenName: string, options?: ScreenOptions) {
+    await this.ensureInitialized();
+    await trackScreen(screenName, options);
+  }
   // public Tooltip = Tooltip;
   public Survey = Survey;
   public Csat = Csat;

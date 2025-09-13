@@ -3,4 +3,7 @@ export type PipData = {
   link: string | null;
   button_text: string | null;
   largeVideoUrl: string;
+  styling: {
+      [key: string]: string;
+    },
 };

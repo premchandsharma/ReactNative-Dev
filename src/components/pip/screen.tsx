@@ -40,6 +40,7 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
           repeat={true}
           resizeMode="contain"
           muted={mute}
+          controls={false}
           source={{
             uri: params.largeVideoUrl
           }}
@@ -122,15 +123,15 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
             width: width,
             justifyContent: "center",
             alignItems: "center",
-            bottom:
-              Platform.OS === "ios" ? height * 0.045 : height * 0.025,
+            bottom: parseInt(params.styling["marginBottom"]!) || 20,
+            left: parseInt(params.styling["marginLeft"]!) || 20,
+            right: parseInt(params.styling["marginRight"]!) || 20,
           }}
         >
           <Pressable
             style={{
-              backgroundColor: "white",
-              borderRadius: 30,
-
+              backgroundColor: params.styling["ctaButtonBackgroundColor"],
+              borderRadius: params.styling["cornerRadius"]
             }}
             onPress={() => {
               if (params.link) {
@@ -141,10 +142,11 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
             }}
           >
             <Text style={{
-              color: "black",
+              color: params.styling["ctaButtonTextColor"],
               fontWeight: "600",
               textAlign: 'center',
               textAlignVertical: 'center',
+              fontSize: parseInt(params.styling["fontSize"]!) || 14,
               height: 45,
               paddingVertical: 10,
               paddingHorizontal: 25,
@@ -157,45 +159,3 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
     </View>
   );
 };
-
-
-// continue Button
-// {data && data.details && data.details.link && (
-//     <View
-//       style={{
-//         display: "flex",
-//         position: "absolute",
-//         width: width,
-//         justifyContent: "center",
-//         alignItems: "center",
-//         bottom:
-//           Platform.OS === "ios" ? height * 0.045 : height * 0.025,
-//       }}
-//     >
-//       <TouchableWithoutFeedback
-//         style={{
-//           backgroundColor: "white",
-//           borderRadius: 30,
-
-//         }}
-//         onPress={() => {
-//           if (data.details.link) {
-//             Linking.openURL(data.details.link);
-//           }
-//           UserActionTrack(user_id, data.id, "CLK");
-//         }}
-//       >
-//         <Text style={{
-//           color: "black",
-//           fontWeight: "600",
-//           textAlign: 'center',
-//           textAlignVertical: 'center',
-//           height: 45,
-//           paddingVertical: 10,
-//           paddingHorizontal: 25,
-//         }}>
-//           Continue
-//         </Text>
-//       </TouchableWithoutFeedback>
-//     </View>
-//   )}

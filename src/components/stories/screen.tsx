@@ -183,7 +183,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
         flex: 1,
         backgroundColor: "black",
         paddingTop: Platform.OS === "ios" ? height * 0.07 : height * 0.02,
-        paddingBottom: height * 0.1,
+        paddingBottom: Platform.OS === "ios" ? height * 0.07 : height * 0.02,
       }}
       {...panResponder.panHandlers} // Attach PanResponder handlers
     >
@@ -200,7 +200,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
             style={{
               height: "100%",
               width: width,
-              resizeMode: "cover",
+              resizeMode: "contain",
               top: 0,
             }}
           />
@@ -212,8 +212,9 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
           <Video
             source={{ uri: content[current]?.video! }}
             style={{ height: "100%", width: width }}
-            resizeMode="cover"
+            resizeMode="contain"
             muted={mute}
+            controls={false}
             onLoad={(data: { duration: SetStateAction<number>; }) => {
               console.log("Video loaded with duration:", data.duration);
               setVideoDuration(data.duration);

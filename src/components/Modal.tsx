@@ -17,6 +17,8 @@ import trackEvent from "../domain/actions/trackEvent";
 export default function Modal() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [imagePath, setImagePath] = useState<string | null>(null);
+
+  const [modalHeight, setModalHeight] = useState<number>(200);
 //   const { width, height } = Dimensions.get("window");
 
   // Find modal campaign data
@@ -41,7 +43,19 @@ export default function Modal() {
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        void checkForImage(imageUrl, setImagePath);
+        void checkForImage(imageUrl, (path) => {
+          setImagePath(path);
+          Image.getSize(
+          `file://${path}`,
+          (imgWidth, imgHeight) => {
+            const aspectRatio = imgHeight / imgWidth;
+            setModalHeight(modalSize * aspectRatio);
+          },
+          (error) => {
+            console.error("Failed to get image size:", error);
+          }
+        );
+        });
       }
     }
   }, [data?.id, modalDetails, imageUrl, mediaType]);
@@ -86,7 +100,7 @@ export default function Modal() {
   const renderMedia = () => {
     const mediaStyle = {
       width: modalSize,
-      height: modalSize,
+      height: modalHeight,
       borderRadius: borderRadius,
     };
 

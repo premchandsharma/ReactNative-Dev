@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import {PixelRatio, Platform, StatusBar} from 'react-native';
+import {PixelRatio, Platform, StatusBar, StyleSheet} from 'react-native';
 import MeasurementContext from './MeasurementContext';
 import {MeasurementData} from "./types";
 import TooltipConsumer from "../../components/tooltip/consumer";
@@ -10,13 +10,14 @@ import Csat from '../../components/Csat';
 import BottomSheet from '../../components/BottomSheet';
 import Survey from '../../components/Survey';
 import CaptureScreenButton from '../../components/CaptureScreenButton';
+import Pip from "../../components/pip";
+import {SafeAreaView} from "react-native-safe-area-context";
 
 interface MeasurementProviderProps {
   children: React.ReactNode;
-  captureScreenName?: string;
 }
 
-export default function MeasurementProvider({ children, captureScreenName }: MeasurementProviderProps) {
+export default function MeasurementProvider({children}: MeasurementProviderProps) {
   // Use a ref to store the registered components.
   // This prevents re-renders every time a component registers.
   const registeredRefs = useRef(new Map<string, any>());
@@ -77,15 +78,17 @@ export default function MeasurementProvider({ children, captureScreenName }: Mea
   return (
     <MeasurementContext.Provider value={{register, unregister, measureAll, measure}}>
       {children}
-      <Banner/>
-      <Floater/>
-      {/* <Pip/> */}
-      <Csat/>
-      <TooltipConsumer/>
-      <Survey/>
-      <BottomSheet/>
-      <Modal/>
-      {captureScreenName && <CaptureScreenButton screenName={captureScreenName} />}
+      <SafeAreaView style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        <Banner/>
+        <Floater/>
+        <Pip/>
+        <Csat/>
+        <TooltipConsumer/>
+        <Survey/>
+        <BottomSheet/>
+        <Modal/>
+        <CaptureScreenButton/>
+      </SafeAreaView>
     </MeasurementContext.Provider>
   );
 }

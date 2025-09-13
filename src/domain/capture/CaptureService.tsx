@@ -7,8 +7,10 @@ import {getAccessToken, getUserId} from "../sdk/store";
 class CaptureService {
   private static layoutData: LayoutInfo[] = [];
 
-  static setScreenCaptureEnabled(enabled: boolean) {
-    useCaptureServiceStore.getState().setIsCapturing(enabled);
+  static setup(enabled: boolean, screenName: string | null) {
+    const state = useCaptureServiceStore.getState();
+    state.setScreenCaptureEnabled(enabled);
+    state.setScreenName(screenName);
   }
 
   static getIsCapturing(): boolean {
@@ -37,8 +39,14 @@ class CaptureService {
     this.layoutData = [];
   }
 
-  static async takeScreenshot(screenName: string): Promise<boolean> {
+  static async takeScreenshot(): Promise<boolean> {
     try {
+      const screenName = useCaptureServiceStore.getState().screenName;
+      if (!screenName) {
+        console.error('Screen name is not set. Cannot identify elements.');
+        return false;
+      }
+
       this.setIsCapturing(true);
 
       // Small delay to ensure UI is settled
@@ -81,7 +89,7 @@ class CaptureService {
 
   static dispose() {
     this.setIsCapturing(false);
-    this.setScreenCaptureEnabled(false);
+    this.setup(false, null);
     this.clearLayoutData();
   }
 
@@ -146,8 +154,10 @@ class CaptureService {
 }
 
 export const useCaptureServiceStore = create<CaptureServiceStore & CaptureServiceActions>((set) => ({
+  screenName: null,
   isCapturing: false,
   isScreenCaptureEnabled: false,
+  setScreenName: (screenName) => set({screenName}),
   setIsCapturing: (isCapturing) => set({isCapturing}),
   setScreenCaptureEnabled: (isScreenCaptureEnabled) => set({isScreenCaptureEnabled}),
 }));
