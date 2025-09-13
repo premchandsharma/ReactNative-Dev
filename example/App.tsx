@@ -25,7 +25,6 @@ export default function App() {
       captureScreenName="Home Screen React"
       >
       <GestureHandlerRootView>
-
         <SafeAreaProvider>
           <SafeAreaView>
             <View style={{ backgroundColor: 'white' }}>

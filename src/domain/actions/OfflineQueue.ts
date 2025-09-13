@@ -76,7 +76,7 @@ export async function sendOrQueue(request: QueuedRequest): Promise<Response | vo
         });
 
         if (!res.ok) {
-            console.warn("❌ Request failed, saving offline:", request.url);
+            console.warn("❌ Request failed, saving offline:", request.url, request.body, res.status);
             await addToQueue(request);
             return;
         } else {
@@ -84,7 +84,7 @@ export async function sendOrQueue(request: QueuedRequest): Promise<Response | vo
             return res;
         }
     } catch (err) {
-        console.error("⚠️ Network error, saving offline:", request.url, err);
+        // console.error("⚠️ Network error, saving offline:", request.url, err, request.body);
         await addToQueue(request);
         return;
     }
