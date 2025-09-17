@@ -131,7 +131,7 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
           <Pressable
             style={{
               backgroundColor: params.styling["ctaButtonBackgroundColor"],
-              borderRadius: params.styling["cornerRadius"]
+              borderRadius:  parseInt(params.styling["cornerRadius"]!) || 12,
             }}
             onPress={() => {
               if (params.link) {
@@ -146,7 +146,7 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
               fontWeight: "600",
               textAlign: 'center',
               textAlignVertical: 'center',
-              fontSize: parseInt(params.styling["fontSize"]!) || 14,
+              // fontSize: parseInt(params.styling["fontSize"]!) || 14,
               height: 45,
               paddingVertical: 10,
               paddingHorizontal: 25,

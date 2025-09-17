@@ -12,6 +12,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import useCampaigns from "../domain/actions/useCampaigns";
 import { CampaignWidgets } from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
+import checkForImage from "../domain/actions/checkForImage";
 
 interface WidgetImage {
   id: string;
@@ -20,13 +21,17 @@ interface WidgetImage {
   order: number;
 }
 
+interface CachedWidgetImage extends WidgetImage {
+  cachedImagePath?: string;
+}
+
 interface WidgetsProps {
   leftPadding?: number;
   rightPadding?: number;
 }
 
 export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsProps) {
-  const flatlistRef = useRef<FlatList<WidgetImage> | null>(null);
+  const flatlistRef = useRef<FlatList<CachedWidgetImage> | null>(null);
   const screenWidth = Dimensions.get("window").width;
   const [activeIndex, setActiveIndex] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -41,70 +46,84 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   const [leftMargin, setLeftMargin] = useState<number>(parseInt("0"));
   const [rightMargin, setRightMargin] = useState<number>(parseInt("0"));
 
+  // State to store cached images
+  const [cachedImages, setCachedImages] = useState<CachedWidgetImage[]>([]);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
   const data = useCampaigns<CampaignWidgets>("WID");
 
-  // Calculate the actual content width considering margins
   const contentWidth = screenWidth - leftMargin - rightMargin - leftPadding - rightPadding;
 
-  const extendedImages = useMemo(() => {
-    if (!data?.details?.widget_images) return [];
+  // Cache images and calculate dimensions
+  useEffect(() => {
+    if (!data?.details?.widget_images) return;
 
-    Image.getSize(
-      data.details.widget_images[0].image,
-      (imgWidth, imgHeight) => {
-        const aspectRatio = imgHeight / imgWidth;
-        setWidgetHeight(contentWidth * aspectRatio);
-      },
-      (error) => {
-        console.error("Failed to get image size:", error);
+    const cacheImages = async () => {
+      const cachedImagePromises = data.details.widget_images.map((item) => 
+        new Promise<CachedWidgetImage>((resolve) => {
+          checkForImage(item.image, (cachedPath) => {
+            resolve({
+              ...item,
+              cachedImagePath: cachedPath
+            });
+          });
+        })
+      );
+
+      try {
+        const cachedImageResults = await Promise.all(cachedImagePromises);
+        setCachedImages(cachedImageResults);
+
+        // Calculate widget height using the first cached image
+        if (cachedImageResults[0]?.cachedImagePath) {
+          Image.getSize(
+            `file://${cachedImageResults[0].cachedImagePath}`,
+            (imgWidth, imgHeight) => {
+              const aspectRatio = imgHeight / imgWidth;
+              setWidgetHeight(contentWidth * aspectRatio);
+              setImagesLoaded(true);
+            },
+            (error) => {
+              console.error("Failed to get image size:", error);
+              setImagesLoaded(true); // Set to true even on error to avoid infinite loading
+            }
+          );
+        } else {
+          setImagesLoaded(true);
+        }
+
+        // Set styling properties
+        if (data.details.styling) {
+          setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
+          setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
+          setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
+          setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
+          setBottomMargin(parseInt(data.details.styling["bottomMargin"] || "0"));
+          setTopMargin(parseInt(data.details.styling["topMargin"] || "0"));
+          setLeftMargin(parseInt(data.details.styling["leftMargin"] || "0"));
+          setRightMargin(parseInt(data.details.styling["rightMargin"] || "0"));
+        }
+      } catch (error) {
+        console.error("Error caching images:", error);
+        setImagesLoaded(true);
       }
-    );
+    };
 
-    if (data.details.styling) {
-      setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
-      setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
-      setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
-      setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
-      setBottomMargin(parseInt(data.details.styling["bottomMargin"] || "0"));
-      setTopMargin(parseInt(data.details.styling["topMargin"] || "0"));
-      setLeftMargin(parseInt(data.details.styling["leftMargin"] || "0"));
-      setRightMargin(parseInt(data.details.styling["rightMargin"] || "0"));
-    }
-
-    // return data.details.type === "full"
-    //   ? [
-    //     data.details.widget_images[data.details.widget_images.length - 1],
-    //     ...data.details.widget_images,
-    //     data.details.widget_images[0],
-    //   ].filter((item): item is WidgetImage => item !== undefined)
-    //   : data.details.widget_images.filter((item): item is WidgetImage => item !== undefined);
-
-    return data.details.widget_images.filter((item): item is WidgetImage => item !== undefined);
-
+    cacheImages();
   }, [data, contentWidth]);
+
+  const extendedImages = useMemo(() => {
+    if (!imagesLoaded || !cachedImages.length) return [];
+    
+    return cachedImages.filter((item): item is CachedWidgetImage => item !== undefined);
+  }, [cachedImages, imagesLoaded]);
 
   const scrollToNextImage = () => {
     if (!data) return;
 
     if (!flatlistRef.current || !extendedImages.length || data.details.type !== "full") return;
 
-    // if (activeIndex === data.details.widget_images.length - 1) {
-    //   flatlistRef.current.scrollToOffset({
-    //     offset: contentWidth,
-    //     animated: false
-    //   });
-    //   setTimeout(() => {
-    //     scrollToNextImage();
-    //   }, 50);
-    // } else {
-    //   flatlistRef.current.scrollToOffset({
-    //     offset: contentWidth * (activeIndex + 2),
-    //     animated: true
-    //   });
-    // }
-
     if (activeIndex === data.details.widget_images.length - 1) {
-      // Clear the interval to stop auto-scrolling
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -112,7 +131,6 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
       return;
     }
 
-    // Continue to next image
     flatlistRef.current.scrollToOffset({
       offset: contentWidth * (activeIndex + 1),
       animated: true
@@ -120,7 +138,6 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   };
 
   useEffect(() => {
-    // Only start auto-scroll if we're not on the last image
     if (data?.details.type === "full" && activeIndex < data.details.widget_images.length - 1) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -137,7 +154,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   }, [activeIndex, data, extendedImages.length]);
 
   const getItemLayout = (
-    data: ArrayLike<WidgetImage> | null | undefined,
+    data: ArrayLike<CachedWidgetImage> | null | undefined,
     index: number
   ) => ({
     data: data,
@@ -161,14 +178,18 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   const handleViewableItemsChanged = ({
     viewableItems,
   }: {
-    viewableItems: { item: WidgetImage }[];
+    viewableItems: { item: CachedWidgetImage }[];
   }) => {
     viewableItems.forEach(({ item }) => {
       trackImpression(item.id);
     });
   };
 
-  const renderFullWidthItem = ({ item, index }: { item: WidgetImage; index: number }) => {
+  const renderFullWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
+    const imageSource = item.cachedImagePath 
+      ? { uri: `file://${item.cachedImagePath}` }
+      : { uri: item.image }; // Fallback to original URL if caching failed
+
     return (
       <View
         key={`${item.order}-${index}`}
@@ -187,7 +208,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
           }}
         >
           <Image
-            source={{ uri: item.image }}
+            source={imageSource}
             style={{
               borderTopRightRadius: topRightRadius,
               borderTopLeftRadius: topLeftRadius,
@@ -203,9 +224,13 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
     );
   };
 
-  const renderHalfWidthItem = ({ item, index }: { item: WidgetImage; index: number }) => {
+  const renderHalfWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
     const halfItemWidth = contentWidth * 0.455;
     const halfItemMargin = contentWidth * 0.03;
+    
+    const imageSource = item.cachedImagePath 
+      ? { uri: `file://${item.cachedImagePath}` }
+      : { uri: item.image }; // Fallback to original URL if caching failed
 
     return (
       <View
@@ -225,7 +250,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
           }}
         >
           <Image
-            source={{ uri: item.image }}
+            source={imageSource}
             style={{
               borderTopRightRadius: topRightRadius,
               borderTopLeftRadius: topLeftRadius,
@@ -247,17 +272,14 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
     const scrollPosition = event.nativeEvent.contentOffset.x;
     const index = Math.round(scrollPosition / contentWidth);
 
-    // Update active index directly without infinite loop logic
     setActiveIndex(index);
 
-    // Restart auto-scroll timer if we're not on the last image
     if (index < data!.details.widget_images.length - 1) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = setInterval(scrollToNextImage, 5000);
       }
     } else {
-      // Clear interval when we reach the last image
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -267,7 +289,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
 
   const renderDotIndicators = () => {
     return data?.details.widget_images.map((dot, index) => {
-      console.log(dot);
+      dot
       return (
         <View
           key={index}
@@ -284,7 +306,8 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
     });
   };
 
-  if (!data || !data.details.widget_images) return null;
+  // Don't render until images are loaded/cached
+  if (!data || !data.details.widget_images || !imagesLoaded) return null;
 
   return (
     <View style={{

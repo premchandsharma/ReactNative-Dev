@@ -15,7 +15,7 @@
       "ESNext"
     ],
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "Node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitReturns": true,
@@ -27,13 +27,18 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
-    "target": "ESNext",
+    "target": "ES2019",
     "verbatimModuleSyntax": false,
-    "declaration": true
+    "declaration": false,
+    "isolatedModules": false,
+    "emitDeclarationOnly": false,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": false
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
     "appstorys.d.ts"
-  ]
+  ],
+  "exclude": ["node_modules", "dist", "lib"]
 }
