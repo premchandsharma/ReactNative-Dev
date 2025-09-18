@@ -201,6 +201,7 @@ export interface AppStorysStore {
   userId: string;
   appId: string;
   accountId: string;
+  trackedEvents: Array<string>;
   attributes?: Attributes;
   screenOptions?: ScreenOptions;
 }
@@ -210,6 +211,7 @@ export interface AppStorysActions {
   setUserId: (userId: string) => void;
   setAppId: (appId: string) => void;
   setAccountId: (accountId: string) => void;
+  setTrackedEvents: (events: Array<string>) => void;
   setAttributes: (attributes: Attributes) => void;
   setScreenOptions: (options?: ScreenOptions) => void;
 }
@@ -229,6 +231,9 @@ export type ScreenOptions = {
   };
 };
 
-export type Campaign = CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
+export type Campaign = (CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
-  CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet;
+  CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet) & {
+  trigger_event?: string;
+  position?: string;
+};
