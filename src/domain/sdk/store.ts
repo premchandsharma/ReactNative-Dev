@@ -7,14 +7,14 @@ const useAppStorysStore = create<AppStorysStore & AppStorysActions>((set) => ({
   userId: '',
   appId: '',
   accountId: '',
-  attributes: undefined,
-  screenOptions: undefined,
+  trackedEvents: [],
   setCampaigns: (campaigns) => set({campaigns}),
   setUserId: (userId) => set({userId}),
   setAppId: (appId) => set({appId}),
   setAccountId: (accountId) => set({accountId}),
   setAttributes: (attributes) => set({attributes}),
   setScreenOptions: (screenOptions) => set({screenOptions}),
+  setTrackedEvents: (trackedEvents) => set({trackedEvents}),
 }));
 
 export function getAppId() {

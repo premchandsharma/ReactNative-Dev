@@ -8,9 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useEffect, useMemo, useRef, useState } from "react";
+import {useEffect, useMemo, useRef, useState} from "react";
 import useCampaigns from "../domain/actions/useCampaigns";
-import { CampaignWidgets } from "../domain/sdk/types";
+import {CampaignWidgets} from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
 import checkForImage from "../domain/actions/checkForImage";
 
@@ -28,9 +28,10 @@ interface CachedWidgetImage extends WidgetImage {
 interface WidgetsProps {
   leftPadding?: number;
   rightPadding?: number;
+  position?: string;
 }
 
-export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsProps) {
+export default function Widgets({leftPadding = 0, rightPadding = 0, position}: WidgetsProps) {
   const flatlistRef = useRef<FlatList<CachedWidgetImage> | null>(null);
   const screenWidth = Dimensions.get("window").width;
   const [activeIndex, setActiveIndex] = useState(0);
@@ -50,7 +51,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   const [cachedImages, setCachedImages] = useState<CachedWidgetImage[]>([]);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  const data = useCampaigns<CampaignWidgets>("WID");
+  const data = useCampaigns<CampaignWidgets>("WID", {position});
 
   const contentWidth = screenWidth - leftMargin - rightMargin - leftPadding - rightPadding;
 
@@ -59,7 +60,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
     if (!data?.details?.widget_images) return;
 
     const cacheImages = async () => {
-      const cachedImagePromises = data.details.widget_images.map((item) => 
+      const cachedImagePromises = data.details.widget_images.map((item) =>
         new Promise<CachedWidgetImage>((resolve) => {
           checkForImage(item.image, (cachedPath) => {
             resolve({
@@ -114,7 +115,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
 
   const extendedImages = useMemo(() => {
     if (!imagesLoaded || !cachedImages.length) return [];
-    
+
     return cachedImages.filter((item): item is CachedWidgetImage => item !== undefined);
   }, [cachedImages, imagesLoaded]);
 
@@ -186,7 +187,7 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   };
 
   const renderFullWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
-    const imageSource = item.cachedImagePath 
+    const imageSource = item.cachedImagePath
       ? { uri: `file://${item.cachedImagePath}` }
       : { uri: item.image }; // Fallback to original URL if caching failed
 
@@ -227,8 +228,8 @@ export default function Widgets({ leftPadding = 0, rightPadding = 0 }: WidgetsPr
   const renderHalfWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
     const halfItemWidth = contentWidth * 0.455;
     const halfItemMargin = contentWidth * 0.03;
-    
-    const imageSource = item.cachedImagePath 
+
+    const imageSource = item.cachedImagePath
       ? { uri: `file://${item.cachedImagePath}` }
       : { uri: item.image }; // Fallback to original URL if caching failed
 

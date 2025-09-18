@@ -1,14 +1,32 @@
-import {getAccessToken, getUserId} from "../sdk/store";
+import useAppStorysStore, {getAccessToken, getUserId} from "../sdk/store";
 import {Attributes} from "../sdk/types";
 import getDeviceInfo from "./getDeviceInfo";
 import {sendOrQueue} from "./offlineQueue";
 
 export default async function trackEvent(event: string, campaignId?: string, metadata?: Attributes) {
   try {
-    const access_token = await getAccessToken();
-    if (!access_token) {
+    if (!event) {
+      console.error('Error in trackEvent. Event name is required');
+      return;
+    }
+
+    const accessToken = await getAccessToken();
+    if (!accessToken) {
       console.error('Error in trackEvent. Access token not found');
       return;
+    }
+
+    if (event !== 'viewed' && event !== 'clicked') {
+      const state = useAppStorysStore.getState();
+      const trackedEvents = state.trackedEvents;
+      if (!trackedEvents.includes(event)) {
+        state.setTrackedEvents([...trackedEvents, event]);
+      } else {
+        // Remove and re-add to update the order
+        const updatedEvents = trackedEvents.filter(e => e !== event);
+        updatedEvents.push(event);
+        state.setTrackedEvents(updatedEvents);
+      }
     }
 
     const deviceInfo = await getDeviceInfo();
@@ -27,21 +45,12 @@ export default async function trackEvent(event: string, campaignId?: string, met
       body.campaign_id = campaignId;
     }
 
-    // const response = await fetch('https://tracking.appstorys.com/capture-event', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${access_token}`
-    //   },
-    //   body: JSON.stringify(body),
-    // });
-
     const response = sendOrQueue({
       url: "https://tracking.appstorys.com/capture-event",
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: body,
     });

@@ -122,7 +122,8 @@ export default function App() {
 
                 <View style={{flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20}}
                       appstorys="icon-buttons-row">
-                  <TouchableOpacity style={{alignItems: 'center'}} appstorys="like-button">
+                  <TouchableOpacity style={{alignItems: 'center'}} appstorys="like-button"
+                                    onPress={() => AppStorys.trackEvent('Open Bottom Sheet')}>
                     <View style={{
                       width: 40,
                       height: 40,

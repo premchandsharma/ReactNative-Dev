@@ -3,6 +3,7 @@ import RNFS from 'react-native-fs';
 import {CaptureServiceActions, CaptureServiceStore, LayoutFrame, LayoutInfo} from "./types";
 import {create} from "zustand/react";
 import {getAccessToken, getUserId} from "../sdk/store";
+import identifyWidgetPositions from "../actions/identifyWidgetPositions";
 
 class CaptureService {
   private static layoutData: LayoutInfo[] = [];
@@ -140,6 +141,8 @@ class CaptureService {
         const responseText = await response.text();
         console.error(`Server error: ${response.status} ${responseText}`);
       }
+
+      await identifyWidgetPositions(screenName)
 
       // Clean up the temporary file
       await RNFS.unlink(screenshotPath);
