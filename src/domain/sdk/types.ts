@@ -118,7 +118,7 @@ export type CampaignCsat = {
     thankyouImage: string;
     thankyouText: string;
     thankyouDescription: string;
-    
+
   }
 }
 

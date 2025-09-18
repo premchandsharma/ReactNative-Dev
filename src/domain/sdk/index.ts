@@ -120,6 +120,7 @@ class AppStorys {
     await this.ensureInitialized();
     await trackScreen(screenName, options);
   }
+
   // public Tooltip = Tooltip;
   public Survey = Survey;
   public Csat = Csat;
@@ -130,4 +131,6 @@ class AppStorys {
   public Measurable = Measurable;
 }
 
-export default new AppStorys();
+const instance = new AppStorys();
+
+export default instance;
