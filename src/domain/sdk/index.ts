@@ -109,18 +109,16 @@ class AppStorys {
     }
   }
 
+  public async trackScreen(screenName: string, options?: ScreenOptions) {
+    await this.ensureInitialized();
+    await trackScreen(screenName, options);
+  }
   public StoriesScreen = StoriesScreen;
   public Floater = Floater;
   public Pip = Pip;
   public PipScreen = PipScreen;
   public Banner = Banner;
   public CaptureScreenButton = CaptureScreenButton;
-
-  public async trackScreen(screenName: string, options?: ScreenOptions) {
-    await this.ensureInitialized();
-    await trackScreen(screenName, options);
-  }
-
   // public Tooltip = Tooltip;
   public Survey = Survey;
   public Csat = Csat;

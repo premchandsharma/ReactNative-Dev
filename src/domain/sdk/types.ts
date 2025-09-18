@@ -220,6 +220,7 @@ export type ComponentPadding = {
 }
 
 export type ScreenOptions = {
+  positionList?: Array<string>;
   overlayPadding?: number | ComponentPadding | {
     pip?: number | ComponentPadding;
     floater?: number;
