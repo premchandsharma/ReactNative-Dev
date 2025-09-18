@@ -79,3 +79,4 @@ android/keystores/debug.keystore
 ios/generated
 android/generated
 lib
+dist
