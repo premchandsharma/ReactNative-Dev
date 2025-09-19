@@ -35,7 +35,7 @@ export default async function trackScreen(screenName: string, options?: ScreenOp
       }
 
       const data: TrackScreenConfig = await response.json();
-      useCaptureServiceStore.getState().setScreenCaptureEnabled(data.screen_capture_enabled);
+      CaptureService.setup(data.screen_capture_enabled, screenName); 
 
       client?.disconnect();
       client = new WebSocketClient();
