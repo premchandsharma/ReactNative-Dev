@@ -16,7 +16,6 @@ export default function App() {
   const [inputText, setInputText] = useState('');
 
   useEffect(() => {
-    console.log('Tracking Home Screen React');
     void AppStorys.trackScreen("Home Screen React", {
       overlayPadding: {
         pip: 40
@@ -27,7 +26,7 @@ export default function App() {
   return (
     <GestureHandlerRootView>
       <SafeAreaProvider>
-        <AppStorys.MeasurementProvider>
+        <AppStorys.Container>
           <SafeAreaView>
             <ScrollView
               contentContainerStyle={{flexGrow: 1, backgroundColor: 'white'}}
@@ -237,7 +236,7 @@ export default function App() {
               </View>
             </ScrollView>
           </SafeAreaView>
-        </AppStorys.MeasurementProvider>
+        </AppStorys.Container>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
