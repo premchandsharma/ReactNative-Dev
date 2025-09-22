@@ -10,18 +10,27 @@ import StoriesScreen from './components/stories/screen';
 import PipScreen from './components/pip/screen';
 import CaptureScreenButton from "./components/CaptureScreenButton";
 import Measurable from "./domain/capture/Measurable";
-import MeasurementProvider from "./domain/capture/MeasurementProvider";
 import Modal from './components/Modal';
 import BottomSheet from './components/BottomSheet';
 import {ScreenOptions} from "./domain/sdk/types";
+import OverlayContainer from "./domain/sdk/OverlayContainer";
 
 export {AppStorys};
 export {
-  Banner, Floater, Pip, Stories, StoriesScreen, PipScreen, Survey,
+  Banner,
+  Floater,
+  Pip,
+  Stories,
+  StoriesScreen,
+  PipScreen,
+  Survey,
   // Tooltip,
-  Csat, Widgets, Modal, BottomSheet,
+  Csat,
+  Widgets,
+  Modal,
+  BottomSheet,
   CaptureScreenButton,
   Measurable,
-  MeasurementProvider,
+  OverlayContainer as Container
 };
 export type {ScreenOptions as AppStorysScreenOptions};
