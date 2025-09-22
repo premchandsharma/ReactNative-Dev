@@ -15,6 +15,9 @@ export default async function trackScreen(screenName: string, options?: ScreenOp
         console.error('Access token not found');
         return resolve(null);
       }
+
+      console.log('Initializing trackScreen for', screenName);
+
       const response = await fetch('https://users.appstorys.com/track-user', {
         method: 'POST',
         headers: {
@@ -30,12 +33,14 @@ export default async function trackScreen(screenName: string, options?: ScreenOp
 
       // Check if response is OK before parsing
       if (!response.ok) {
-        // console.error('API response not OK:', response.status, response.statusText);
+        console.error('Failed to initialize trackScreen', response.status, await response.text());
         return resolve(null);
       }
 
       const data: TrackScreenConfig = await response.json();
-      CaptureService.setup(data.screen_capture_enabled, screenName); 
+      CaptureService.setup(data.screen_capture_enabled, screenName);
+
+      console.log('Track screen initialized', data);
 
       client?.disconnect();
       client = new WebSocketClient();
