@@ -1,8 +1,7 @@
-import {captureScreen} from 'react-native-view-shot';
-import RNFS from 'react-native-fs';
-import {CaptureServiceActions, CaptureServiceStore, LayoutFrame, LayoutInfo} from "./types";
-import {create} from "zustand/react";
-import {getAccessToken, getUserId} from "../sdk/store";
+import { captureScreen } from 'react-native-view-shot';
+import { CaptureServiceActions, CaptureServiceStore, LayoutFrame, LayoutInfo } from "./types";
+import { create } from "zustand/react";
+import { getAccessToken, getUserId } from "../sdk/store";
 import identifyWidgetPositions from "../actions/identifyWidgetPositions";
 
 class CaptureService {
@@ -54,18 +53,10 @@ class CaptureService {
       await new Promise(resolve => setTimeout(resolve, 100));
 
       // Capture the screen
-      const uri = await captureScreen({
+      const screenshotPath = await captureScreen({
         format: 'png',
         quality: 1.0,
       });
-
-      // Create a unique filename
-      const timestamp = Date.now();
-      const filename = `screen_capture_${timestamp}.png`;
-      const filepath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
-
-      // Copy the captured image to temp directory
-      await RNFS.copyFile(uri, filepath);
 
       // Collect layout information
       const children = JSON.stringify(this.layoutData);
@@ -75,7 +66,7 @@ class CaptureService {
       // Send to server for element identification
       await this.identifyElements({
         screenName,
-        screenshotPath: filepath,
+        screenshotPath,
         children,
       });
 
@@ -118,9 +109,9 @@ class CaptureService {
       formData.append('user_id', userId);
       formData.append('children', children);
       formData.append('screenshot', {
-        uri: `file://${screenshotPath}`,
+        uri: screenshotPath,
         type: 'image/png',
-        name: 'screenshot.png',
+        name: `screenshot_${userId}_${screenName}_${Date.now()}.png`,
       } as any);
 
       const response = await fetch(
@@ -143,9 +134,6 @@ class CaptureService {
       }
 
       await identifyWidgetPositions(screenName)
-
-      // Clean up the temporary file
-      await RNFS.unlink(screenshotPath);
     } catch (error) {
       console.error('Exception in identifyElements:', error);
     }
@@ -160,9 +148,9 @@ export const useCaptureServiceStore = create<CaptureServiceStore & CaptureServic
   screenName: null,
   isCapturing: false,
   isScreenCaptureEnabled: false,
-  setScreenName: (screenName) => set({screenName}),
-  setIsCapturing: (isCapturing) => set({isCapturing}),
-  setScreenCaptureEnabled: (isScreenCaptureEnabled) => set({isScreenCaptureEnabled}),
+  setScreenName: (screenName) => set({ screenName }),
+  setIsCapturing: (isCapturing) => set({ isCapturing }),
+  setScreenCaptureEnabled: (isScreenCaptureEnabled) => set({ isScreenCaptureEnabled }),
 }));
 
 export default CaptureService;
