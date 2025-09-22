@@ -7,14 +7,13 @@ Official React Native SDK for integrating AppStorys services into a react native
 This SDK depends on some other libraries.
 
 ```sh
-npm install react-native-safe-area-context react-native-encrypted-storage react-native-gesture-handler react-native-reanimated react-native-video
+npm install react-native-safe-area-context react-native-encrypted-storage react-native-gesture-handler react-native-video
 cd ios && pod install && cd ..
 ```
 
 Be sure you follow all installation instructions:
 [react-native-encrypted-storage](https://github.com/emeraldsanto/react-native-encrypted-storage#readme)
 [react-native-gesture-handler](https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation)
-[react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/)
 [react-native-video](https://thewidlarzgroup.github.io/react-native-video/installation)
 
 ```sh
