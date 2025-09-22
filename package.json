@@ -122,26 +122,10 @@
     "react-native-fs": ">=2.20.0",
     "react-native-gesture-handler": ">=2.0.0",
     "react-native-localize": ">=3.5.2",
-    "react-native-reanimated": ">=3.0.0",
     "react-native-safe-area-context": ">=5.3.0",
     "react-native-svg": ">=15.12.1",
     "react-native-video": ">=6.0.0",
-    "react-native-view-shot": ">=4.0.3",
-    "react-native-worklets-core": ">=1.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react-native-gesture-handler": {
-      "optional": true
-    },
-    "react-native-reanimated": {
-      "optional": true
-    },
-    "react-native-safe-area-context": {
-      "optional": true
-    },
-    "react-native-worklets-core": {
-      "optional": true
-    }
+    "react-native-view-shot": ">=4.0.3"
   },
   "release-it": {
     "git": {
