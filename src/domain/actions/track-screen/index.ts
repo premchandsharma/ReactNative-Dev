@@ -1,7 +1,7 @@
 import WebSocketClient from "./websocket";
 import useAppStorysStore, {getAccessToken, getUserId} from "../../sdk/store";
 import {TrackScreenConfig, TrackScreenResponse} from "./types";
-import CaptureService, {useCaptureServiceStore} from "../../capture/CaptureService";
+import CaptureService from "../../capture/CaptureService";
 import TooltipManager from "../../tooltips/TooltipManager";
 import {ScreenOptions} from "../../sdk/types";
 

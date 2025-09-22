@@ -5,8 +5,8 @@ import {GestureHandlerRootView} from "react-native-gesture-handler";
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
 void AppStorys.initialize(
-  "9e1b21a2-350a-4592-918c-2a19a73f249a",
-  "4350bf8e-0c9a-46bd-b953-abb65ab21d11",
+  "5c45be58-85df-4651-9a66-6c10754e7f54",
+  "e3c8ee76-a90c-4673-a9e6-2e49f14425f2",
   "nameisprem",
   // attributes,
 );
@@ -38,9 +38,7 @@ export default function App() {
               }} appstorys="container">
                 <View style={{backgroundColor: '#f0f0f0', padding: 10, marginBottom: 15}}
                       appstorys="main-header-view">
-                  <Text style={{fontSize: 24, fontWeight: 'bold', textAlign: 'center'}} appstorys="app-title">
-                    Testing AppStorys SDK
-                  </Text>
+                  
                 </View>
 
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', marginBottom: 20}}
@@ -49,6 +47,7 @@ export default function App() {
                   <TouchableOpacity
                     style={{backgroundColor: '#007AFF', padding: 10, borderRadius: 5}}
                     appstorys="custom-touchable-button"
+                    onPress={() => void AppStorys.trackEvent('Login')}
                   >
                     <Text style={{color: 'white'}} appstorys="touchable-text">Custom Button</Text>
                   </TouchableOpacity>
