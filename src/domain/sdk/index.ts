@@ -26,6 +26,7 @@ import OverlayContainer from "./OverlayContainer";
 
 class AppStorys {
   private isInitializing = false;
+  private isInitialized = false;
 
   public async initialize(
     appId: string,
@@ -33,23 +34,33 @@ class AppStorys {
     userId: string,
     attributes?: Attributes
   ) {
+    if (this.isInitialized) {
+      return;
+    }
+
     if (this.isInitializing) {
       throw new Error('Initialization already in progress');
     }
+
     this.isInitializing = true;
-    const success = await verifyAccount(accountId, appId);
-    if (success) {
-      const state = useAppStorysStore.getState();
-      state.setAppId(appId);
-      state.setAccountId(accountId);
-      state.setUserId(userId);
-      if (attributes) {
-        state.setAttributes(attributes);
+
+    try {
+      const success = await verifyAccount(accountId, appId);
+      if (success) {
+        const state = useAppStorysStore.getState();
+        state.setAppId(appId);
+        state.setAccountId(accountId);
+        state.setUserId(userId);
+        if (attributes) {
+          state.setAttributes(attributes);
+        }
+        this.isInitialized = true;
+      } else {
+        throw new Error('Account verification failed');
       }
-    } else {
-      throw new Error('Account verification failed');
+    } finally {
+      this.isInitializing = false;
     }
-    this.isInitializing = false;
   }
 
   public async trackUser(attributes?: Attributes) {
@@ -101,8 +112,7 @@ class AppStorys {
     while (this.isInitializing) {
       await new Promise(resolve => setTimeout(resolve, 100));
     }
-    const state = useAppStorysStore.getState();
-    if (!state.userId || !state.appId || !state.accountId) {
+    if (!this.isInitialized) {
       throw new Error('AppStorys not initialized. Call initialize() first.');
     }
   }

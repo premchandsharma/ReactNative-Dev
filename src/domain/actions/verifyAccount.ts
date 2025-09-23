@@ -25,7 +25,7 @@ export default async function verifyAccount(accountId: string, appId: string) {
     }
     return false
   } catch (error) {
-    console.log(error)
+    console.error(error);
     return false
   }
 };
