@@ -95,48 +95,42 @@ class CaptureService {
       screenshotPath: string;
       children: string;
     }) {
-    try {
-      const accessToken = await getAccessToken();
-      const userId = getUserId();
+    const accessToken = await getAccessToken();
+    const userId = getUserId();
 
-      if (!accessToken || !userId) {
-        console.error('Error in identifyElements. Access token or user ID not found');
-        return;
-      }
-
-      const formData = new FormData();
-      formData.append('screenName', screenName);
-      formData.append('user_id', userId);
-      formData.append('children', children);
-      formData.append('screenshot', {
-        uri: screenshotPath,
-        type: 'image/png',
-        name: `screenshot_${userId}_${screenName}_${Date.now()}.png`,
-      } as any);
-
-      const response = await fetch(
-        'https://backend.appstorys.com/api/v1/appinfo/identify-elements/',
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
-        }
-      );
-
-      if (response.status === 200 || response.status === 201 || response.status === 204) {
-        console.log('Elements identified successfully');
-      } else {
-        const responseText = await response.text();
-        console.error(`Server error: ${response.status} ${responseText}`);
-      }
-
-      await identifyWidgetPositions(screenName, positionList);
-    } catch (error) {
-      console.error('Error in identifyElements:', error);
+    if (!accessToken || !userId) {
+      throw new Error('Error in identifyElements. Access token or user ID not found');
     }
+
+    const formData = new FormData();
+    formData.append('screenName', screenName);
+    formData.append('user_id', userId);
+    formData.append('children', children);
+    formData.append('screenshot', {
+      uri: screenshotPath,
+      type: 'image/png',
+      name: `screenshot_${userId}_${screenName}_${Date.now()}.png`,
+    } as any);
+
+    const response = await fetch(
+      'https://backend.appstorys.com/api/v1/appinfo/identify-elements/',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData,
+      }
+    );
+
+    if (response.status === 200 || response.status === 201 || response.status === 204) {
+      console.log('Elements identified successfully');
+    } else {
+      throw new Error(`Server error: ${response.status} ${await response.text()}`);
+    }
+
+    await identifyWidgetPositions(screenName, positionList);
   }
 
   private static setIsCapturing(screenName: string, capturing: boolean) {
