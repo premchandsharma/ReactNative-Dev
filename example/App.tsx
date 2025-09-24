@@ -7,8 +7,8 @@ import HomeScreen from './src/HomeScreen';
 import MoreScreen from './src/MoreScreen';
 
 void AppStorys.initialize(
-  "5c45be58-85df-4651-9a66-6c10754e7f54",
-  "e3c8ee76-a90c-4673-a9e6-2e49f14425f2",
+  "9e1b21a2-350a-4592-918c-2a19a73f249a",
+  "4350bf8e-0c9a-46bd-b953-abb65ab21d11",
   "nameisprem",
   // attributes,
 );

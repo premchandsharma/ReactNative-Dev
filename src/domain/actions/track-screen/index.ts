@@ -3,16 +3,23 @@ import useAppStorysStore, {getAccessToken, getUserId} from "../../sdk/store";
 import {TrackScreenConfig, TrackScreenResponse} from "./types";
 import CaptureService from "../../capture/CaptureService";
 import TooltipManager from "../../tooltips/TooltipManager";
+import {EventEmitter} from "events";
 
 let client: WebSocketClient | null = null;
 
-export default async function trackScreen(screenName: string) {
+const screenTrackingEmitter = new EventEmitter();
+
+export default async function trackScreen(screenName: string, emitTrackEvent: boolean) {
   const response = await new Promise<TrackScreenResponse | null>(async (resolve) => {
     try {
       const accessToken = await getAccessToken();
       if (!accessToken) {
         console.error('Access token not found');
         return resolve(null);
+      }
+
+      if (emitTrackEvent) {
+        screenTrackingEmitter.emit("screen_tracked", screenName);
       }
 
       console.log('Initializing trackScreen for', screenName);
@@ -72,4 +79,11 @@ export default async function trackScreen(screenName: string) {
       await TooltipManager.getInstance(screenName).processTooltips(campaigns)
     }
   }
+}
+
+export function onScreenTracked(callback: (screenName: string) => void) {
+  screenTrackingEmitter.on("screen_tracked", callback);
+  return () => {
+    screenTrackingEmitter.off("screen_tracked", callback);
+  };
 }
