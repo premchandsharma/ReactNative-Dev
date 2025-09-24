@@ -197,43 +197,27 @@ export interface Attributes {
 }
 
 export interface AppStorysStore {
-  campaigns: Array<Campaign>;
   userId: string;
   appId: string;
   accountId: string;
-  trackedEvents: Array<string>;
+  campaigns: Campaign[];
+  trackedEvents: string[];
   attributes?: Attributes;
-  screenOptions?: ScreenOptions;
 }
 
 export interface AppStorysActions {
-  setCampaigns: (campaigns: Array<Campaign>) => void;
   setUserId: (userId: string) => void;
   setAppId: (appId: string) => void;
   setAccountId: (accountId: string) => void;
-  setTrackedEvents: (events: Array<string>) => void;
+  saveCampaigns: (campaigns: Campaign[]) => void;
+  setTrackedEvents: (events: string[]) => void;
   setAttributes: (attributes: Attributes) => void;
-  setScreenOptions: (options?: ScreenOptions) => void;
 }
-
-export type ComponentPadding = {
-  top?: number;
-  bottom?: number;
-}
-
-export type ScreenOptions = {
-  positionList?: Array<string>;
-  overlayPadding?: number | ComponentPadding | {
-    pip?: number | ComponentPadding;
-    floater?: number;
-    banner?: number;
-    csat?: number;
-  };
-};
 
 export type Campaign = (CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
   CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet) & {
   trigger_event?: string;
   position?: string;
+  screen?: string;
 };

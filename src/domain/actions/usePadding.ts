@@ -1,9 +1,9 @@
-import useAppStorysStore from "../sdk/store";
 import {useMemo} from "react";
-import {ComponentPadding} from "../sdk/types";
+import useScreen from "../screen/useScreen";
+import {ComponentPadding} from "../screen/types";
 
 export default function usePadding(campaignType: string): ComponentPadding | null {
-  const padding = useAppStorysStore((state) => state.screenOptions?.overlayPadding);
+  const padding = useScreen().options?.overlayPadding;
 
   return useMemo(
     () => {

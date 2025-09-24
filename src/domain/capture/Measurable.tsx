@@ -1,16 +1,16 @@
-import React, {useContext, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import MeasurementContext from './MeasurementContext';
 import {layoutChangeEvent} from './layoutChangeEvent';
+import useScreen from "../screen/useScreen";
 
 interface MeasurableProps {
   appstorys: string;
   children: React.ReactNode;
 }
 
-export default function Measurable({ appstorys, children }: MeasurableProps) {
+export default function Measurable({appstorys, children}: MeasurableProps) {
   // Get the register/unregister functions from our context
-  const { register, unregister } = useContext(MeasurementContext);
+  const {context: {register, unregister}} = useScreen();
   const componentRef = useRef(null);
 
   useEffect(() => {

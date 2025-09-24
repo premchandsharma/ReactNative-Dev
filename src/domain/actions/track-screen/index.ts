@@ -3,11 +3,10 @@ import useAppStorysStore, {getAccessToken, getUserId} from "../../sdk/store";
 import {TrackScreenConfig, TrackScreenResponse} from "./types";
 import CaptureService from "../../capture/CaptureService";
 import TooltipManager from "../../tooltips/TooltipManager";
-import {ScreenOptions} from "../../sdk/types";
 
 let client: WebSocketClient | null = null;
 
-export default async function trackScreen(screenName: string, options?: ScreenOptions) {
+export default async function trackScreen(screenName: string) {
   const response = await new Promise<TrackScreenResponse | null>(async (resolve) => {
     try {
       const accessToken = await getAccessToken();
@@ -38,7 +37,7 @@ export default async function trackScreen(screenName: string, options?: ScreenOp
       }
 
       const data: TrackScreenConfig = await response.json();
-      CaptureService.setup(data.screen_capture_enabled, screenName);
+      CaptureService.setup(screenName, data.screen_capture_enabled);
 
       console.log('Track screen initialized', data);
 
@@ -64,14 +63,13 @@ export default async function trackScreen(screenName: string, options?: ScreenOp
   if (response) {
     console.log(response);
 
-    CaptureService.setup(response.metadata.screen_capture_enabled, screenName);
+    CaptureService.setup(screenName, response.metadata.screen_capture_enabled);
 
     const campaigns = response.campaigns || [];
     if (campaigns.length > 0) {
       const state = useAppStorysStore.getState();
-      state.setCampaigns(campaigns);
-      state.setScreenOptions(options);
-      await TooltipManager.getInstance().processTooltips(campaigns)
+      state.saveCampaigns(campaigns);
+      await TooltipManager.getInstance(screenName).processTooltips(campaigns)
     }
   }
 }

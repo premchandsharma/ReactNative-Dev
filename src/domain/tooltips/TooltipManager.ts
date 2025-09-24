@@ -7,7 +7,9 @@ import trackEvent from "../actions/trackEvent";
 import {Campaign} from "../sdk/types";
 
 class TooltipManager {
-  private static instance: TooltipManager;
+  private static instance: Record<string, TooltipManager> = {};
+
+  private readonly screenName: string;
   private tooltips: Array<Tooltip> = [];
   private currentTooltipIndex = 0;
   private isProcessing = false;
@@ -15,11 +17,15 @@ class TooltipManager {
   private onHideTooltip?: () => void;
   private measure?: (id: string) => Promise<MeasurementData | null>;
 
-  static getInstance(): TooltipManager {
-    if (!TooltipManager.instance) {
-      TooltipManager.instance = new TooltipManager();
+  private constructor(screen: string) {
+    this.screenName = screen;
+  }
+
+  static getInstance(screen: string): TooltipManager {
+    if (!TooltipManager.instance[screen]) {
+      TooltipManager.instance[screen] = new TooltipManager(screen);
     }
-    return TooltipManager.instance;
+    return TooltipManager.instance[screen];
   }
 
   setMeasurementFunction(measure: (id: string) => Promise<MeasurementData | null>) {
@@ -41,22 +47,27 @@ class TooltipManager {
     }
 
     const tooltipCampaigns = campaigns.filter(
-      (campaign) => campaign.campaign_type === 'TTP'
+      (campaign) => campaign.screen === this.screenName && campaign.campaign_type === 'TTP'
     );
 
     if (tooltipCampaigns.length === 0) return;
 
-    const tooltipCampaign = tooltipCampaigns[0] as CampaignTooltips;
-
     this.reset();
 
-    this.tooltips = tooltipCampaign.details.tooltips;
+    for (let i = 0; i < tooltipCampaigns.length; i++) {
+      const campaign = tooltipCampaigns[i] as CampaignTooltips;
+      const tooltips = campaign.details.tooltips.map((tooltip) => ({
+        ...tooltip,
+        campaignId: campaign.id,
+      }));
+      this.tooltips = [...this.tooltips, ...tooltips];
+    }
 
     try {
       if (this.tooltips.length > 0) {
         // Small delay to ensure UI is ready
         setTimeout(() => {
-          this.showNextTooltip(tooltipCampaign.id);
+          this.showNextTooltip();
         }, 1000);
       }
     } catch (error) {
@@ -65,9 +76,9 @@ class TooltipManager {
   }
 
   // used to re-show the current tooltip after a layout change
-  reshowCurrentTooltip(campaignId: string) {
+  reshowCurrentTooltip() {
     this.isProcessing = false;
-    return this.showNextTooltip(campaignId);
+    return this.showNextTooltip();
   }
 
   reset() {
@@ -77,26 +88,26 @@ class TooltipManager {
     this.onHideTooltip?.();
   }
 
-  private async showNextTooltip(campaignId: string) {
+  private async showNextTooltip() {
     if (this.isProcessing || this.currentTooltipIndex >= this.tooltips.length) {
       return;
     }
 
     const tooltip = this.tooltips[this.currentTooltipIndex];
     if (!tooltip) {
-      return this.onTooltipClosed(campaignId);
+      return this.onTooltipClosed();
     }
 
     const targetElement = await this.measure!(tooltip?.target);
     if (!targetElement) {
-      return this.onTooltipClosed(campaignId);
+      return this.onTooltipClosed();
     }
 
     this.isProcessing = true;
-    this.showOverlay(targetElement, tooltip, campaignId);
+    this.showOverlay(targetElement, tooltip);
   }
 
-  private onTooltipClosed(campaignId: string) {
+  private onTooltipClosed() {
     console.log('Tooltip closed');
     this.onHideTooltip?.();
     this.currentTooltipIndex++;
@@ -104,14 +115,14 @@ class TooltipManager {
 
     if (this.currentTooltipIndex < this.tooltips.length) {
       setTimeout(() => {
-        void this.showNextTooltip(campaignId);
+        void this.showNextTooltip();
       }, 300);
     } else {
       this.reset();
     }
   }
 
-  private showOverlay(targetElement: MeasurementData, data: Tooltip, campaignId: string) {
+  private showOverlay(targetElement: MeasurementData, data: Tooltip) {
     try {
       const screenSize = Dimensions.get('window');
 
@@ -145,7 +156,7 @@ class TooltipManager {
       });
 
       // Track tooltip view event
-      void trackEvent('viewed', campaignId, {
+      void trackEvent('viewed', data.campaignId, {
         "tooltip_id": data._id
       });
 
@@ -166,7 +177,6 @@ class TooltipManager {
           backgroundColor,
           enableBackdrop,
         },
-        campaignId
       });
 
       this.onShowTooltip?.(data.target, tooltipComponent);
@@ -182,14 +192,12 @@ class TooltipManager {
       size,
       tooltipPosition,
       styling,
-      campaignId
     }: {
       data: Tooltip;
       position: { x: number; y: number };
       size: { width: number; height: number };
       tooltipPosition: TooltipPosition;
       styling: any;
-      campaignId: string;
     }
   ): React.ReactElement {
     return React.createElement(TooltipComponent, {
@@ -199,16 +207,16 @@ class TooltipManager {
       size,
       tooltipPosition,
       styling,
-      onClose: () => this.onTooltipClosed(campaignId),
-      onTooltipClick: () => this.handleClick(data, campaignId),
+      onClose: () => this.onTooltipClosed(),
+      onTooltipClick: () => this.handleClick(data),
     });
   }
 
-  private handleClick(tooltipData: Tooltip, campaignId: string) {
+  private handleClick(tooltipData: Tooltip) {
     const clickAction = tooltipData.clickAction;
     const link = tooltipData.deepLinkUrl;
 
-    void trackEvent('clicked', campaignId, {
+    void trackEvent('clicked', tooltipData.campaignId, {
       "tooltip_id": tooltipData._id,
     });
 
@@ -218,7 +226,7 @@ class TooltipManager {
       });
     }
 
-    this.onTooltipClosed(campaignId);
+    this.onTooltipClosed();
   }
 
   private calculatePosition(

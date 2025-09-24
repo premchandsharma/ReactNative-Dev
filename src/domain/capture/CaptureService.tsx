@@ -1,53 +1,56 @@
-import { captureScreen } from 'react-native-view-shot';
-import { CaptureServiceActions, CaptureServiceStore, LayoutFrame, LayoutInfo } from "./types";
-import { create } from "zustand/react";
-import { getAccessToken, getUserId } from "../sdk/store";
+import {captureScreen} from 'react-native-view-shot';
+import {LayoutFrame, LayoutInfo} from "./types";
+import {getAccessToken, getUserId} from "../sdk/store";
 import identifyWidgetPositions from "../actions/identifyWidgetPositions";
+import {useCaptureServiceStore} from "./store";
 
 class CaptureService {
-  private static layoutData: LayoutInfo[] = [];
+  private static layoutData: Record<string, LayoutInfo[]> = {};
 
-  static setup(enabled: boolean, screenName: string | null) {
+  static setup(screenName: string, enabled: boolean) {
     const state = useCaptureServiceStore.getState();
-    state.setScreenCaptureEnabled(enabled);
-    state.setScreenName(screenName);
+    state.setScreenCaptureEnabled(screenName, enabled);
   }
 
-  static getIsCapturing(): boolean {
-    return useCaptureServiceStore.getState().isCapturing;
+  static getIsCapturing(screenName: string): boolean {
+    return useCaptureServiceStore.getState().isCapturing[screenName] || false;
   }
 
-  static getIsScreenCaptureEnabled(): boolean {
-    return useCaptureServiceStore.getState().isScreenCaptureEnabled;
+  static getIsScreenCaptureEnabled(screenName: string): boolean {
+    return useCaptureServiceStore.getState().isScreenCaptureEnabled[screenName] || false;
   }
 
-  static addLayoutInfo(id: string, layout: LayoutFrame) {
-    const existingIndex = this.layoutData.findIndex(item => item.id === id);
+  static addLayoutInfo(screenName: string, id: string, layout: LayoutFrame) {
+    if (!this.layoutData[screenName]) {
+      this.layoutData[screenName] = [];
+    }
+
+    const infos = this.layoutData[screenName];
+    const existingIndex = infos.findIndex(item => item.id === id);
     const layoutInfo: LayoutInfo = {
       id,
       frame: layout,
     };
 
     if (existingIndex >= 0) {
-      this.layoutData[existingIndex] = layoutInfo;
+      infos[existingIndex] = layoutInfo;
     } else {
-      this.layoutData.push(layoutInfo);
+      infos.push(layoutInfo);
     }
   }
 
-  static clearLayoutData() {
-    this.layoutData = [];
+  static clearLayoutData(screenName: string) {
+    this.layoutData[screenName] = [];
   }
 
-  static async takeScreenshot(): Promise<boolean> {
+  static async takeScreenshot(screenName: string, positionList?: string[]): Promise<boolean> {
     try {
-      const screenName = useCaptureServiceStore.getState().screenName;
       if (!screenName) {
         console.error('Screen name is not set. Cannot identify elements.');
         return false;
       }
 
-      this.setIsCapturing(true);
+      this.setIsCapturing(screenName, true);
 
       // Small delay to ensure UI is settled
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -59,13 +62,14 @@ class CaptureService {
       });
 
       // Collect layout information
-      const children = JSON.stringify(this.layoutData);
+      const children = JSON.stringify(this.layoutData[screenName]);
 
-      console.log('Layout data:', this.layoutData);
+      console.log('Layout data ', screenName, ' : ', this.layoutData[screenName]);
 
       // Send to server for element identification
       await this.identifyElements({
         screenName,
+        positionList,
         screenshotPath,
         children,
       });
@@ -75,23 +79,19 @@ class CaptureService {
       console.error('Screenshot failed:', error);
       return false;
     } finally {
-      this.setIsCapturing(false);
+      this.setIsCapturing(screenName, false);
     }
-  }
-
-  static dispose() {
-    this.setIsCapturing(false);
-    this.setup(false, null);
-    this.clearLayoutData();
   }
 
   private static async identifyElements(
     {
       screenName,
+      positionList,
       screenshotPath,
       children,
     }: {
       screenName: string;
+      positionList?: string[];
       screenshotPath: string;
       children: string;
     }) {
@@ -133,24 +133,15 @@ class CaptureService {
         console.error(`Server error: ${response.status} ${responseText}`);
       }
 
-      await identifyWidgetPositions(screenName)
+      await identifyWidgetPositions(screenName, positionList);
     } catch (error) {
-      console.error('Exception in identifyElements:', error);
+      console.error('Error in identifyElements:', error);
     }
   }
 
-  private static setIsCapturing(capturing: boolean) {
-    useCaptureServiceStore.getState().setIsCapturing(capturing);
+  private static setIsCapturing(screenName: string, capturing: boolean) {
+    useCaptureServiceStore.getState().setIsCapturing(screenName, capturing);
   }
 }
-
-export const useCaptureServiceStore = create<CaptureServiceStore & CaptureServiceActions>((set) => ({
-  screenName: null,
-  isCapturing: false,
-  isScreenCaptureEnabled: false,
-  setScreenName: (screenName) => set({ screenName }),
-  setIsCapturing: (isCapturing) => set({ isCapturing }),
-  setScreenCaptureEnabled: (isScreenCaptureEnabled) => set({ isScreenCaptureEnabled }),
-}));
 
 export default CaptureService;

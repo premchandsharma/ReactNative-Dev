@@ -1,8 +1,7 @@
-import useAppStorysStore, {getAccessToken} from "../sdk/store";
+import {getAccessToken} from "../sdk/store";
 
-export default async function identifyWidgetPositions(screenName: string) {
+export default async function identifyWidgetPositions(screenName: string, positionList?: string[]) {
   try {
-    const positionList = useAppStorysStore.getState().screenOptions?.positionList;
     if (!positionList || positionList.length === 0) {
       console.warn('No positions to identify for widgets.');
       return;

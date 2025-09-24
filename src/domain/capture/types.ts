@@ -11,22 +11,13 @@ export interface LayoutInfo {
 }
 
 export interface CaptureServiceStore {
-  screenName: string | null;
-  isCapturing: boolean;
-  isScreenCaptureEnabled: boolean;
+  isCapturing: Record<string, boolean>;
+  isScreenCaptureEnabled: Record<string, boolean>;
 }
 
 export interface CaptureServiceActions {
-  setScreenName: (name: string | null) => void;
-  setScreenCaptureEnabled: (enabled: boolean) => void;
-  setIsCapturing: (capturing: boolean) => void;
-}
-
-export interface MeasurementContextType {
-  register: (id: string, ref: any) => void;
-  unregister: (id: string) => void;
-  measure: (id: string) => Promise<MeasurementData | null>;
-  measureAll: () => Promise<MeasurementData[]>;
+  setScreenCaptureEnabled: (screenName: string, enabled: boolean) => void;
+  setIsCapturing: (screenName: string, capturing: boolean) => void;
 }
 
 export interface MeasurementData {
