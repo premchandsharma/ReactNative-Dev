@@ -47,6 +47,9 @@ export type Tooltip = {
   triggerType: string;
   type: string;
   url: string;
+
+  // additional fields for internal use
+  campaignId?: string;
 }
 
 export type TooltipPosition = {

@@ -21,8 +21,8 @@ import verifyAccount from '../actions/verifyAccount';
 import verifyUser from '../actions/verifyUser';
 import Measurable from '../capture/Measurable';
 import useAppStorysStore from "./store";
-import {Attributes, ScreenOptions} from "./types";
-import OverlayContainer from "./OverlayContainer";
+import {Attributes} from "./types";
+import Screen from "../screen/Screen";
 
 class AppStorys {
   private isInitializing = false;
@@ -117,10 +117,7 @@ class AppStorys {
     }
   }
 
-  public async trackScreen(screenName: string, options?: ScreenOptions) {
-    await this.ensureInitialized();
-    await trackScreen(screenName, options);
-  }
+  public Screen = Screen;
 
   public Stories = Stories;
   public StoriesScreen = StoriesScreen;
@@ -136,7 +133,11 @@ class AppStorys {
   public Modal = Modal;
   public BottomSheet = BottomSheet;
   public Measurable = Measurable;
-  public Container = OverlayContainer;
+
+  public async trackScreen(screenName: string) {
+    await this.ensureInitialized();
+    await trackScreen(screenName);
+  }
 }
 
 const instance = new AppStorys();

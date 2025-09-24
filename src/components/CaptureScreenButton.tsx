@@ -1,14 +1,15 @@
 import {ActivityIndicator, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {useCaptureServiceStore} from "../domain/capture/CaptureService";
 import useCapture from "../domain/capture/useCapture";
+import {useCaptureServiceStore} from "../domain/capture/store";
+import useScreen from "../domain/screen/useScreen";
 
 export default function CaptureScreenButton() {
-  const enabled = useCaptureServiceStore(state => state.isScreenCaptureEnabled);
-  const isCapturing = useCaptureServiceStore(state => state.isCapturing);
-  const screenName = useCaptureServiceStore(state => state.screenName);
+  const screen = useScreen().name;
+  const enabled = useCaptureServiceStore(state => state.isScreenCaptureEnabled)[screen];
+  const isCapturing = useCaptureServiceStore(state => state.isCapturing)[screen];
   const handleCapture = useCapture();
 
-  if (!enabled || !screenName) {
+  if (!enabled || !screen) {
     return null;
   }
 

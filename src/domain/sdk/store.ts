@@ -3,17 +3,18 @@ import {AppStorysActions, AppStorysStore} from "./types";
 import EncryptedStorage from "react-native-encrypted-storage";
 
 const useAppStorysStore = create<AppStorysStore & AppStorysActions>((set) => ({
-  campaigns: [],
   userId: '',
   appId: '',
   accountId: '',
+  campaigns: [],
   trackedEvents: [],
-  setCampaigns: (campaigns) => set({campaigns}),
+  saveCampaigns: (campaigns) => set((state) => ({
+    campaigns: [...state.campaigns, ...campaigns]
+  })),
   setUserId: (userId) => set({userId}),
   setAppId: (appId) => set({appId}),
   setAccountId: (accountId) => set({accountId}),
   setAttributes: (attributes) => set({attributes}),
-  setScreenOptions: (screenOptions) => set({screenOptions}),
   setTrackedEvents: (trackedEvents) => set({trackedEvents}),
 }));
 
@@ -36,6 +37,5 @@ export function getCampaigns() {
 export function getAttributes() {
   return useAppStorysStore.getState().attributes;
 }
-
 
 export default useAppStorysStore;

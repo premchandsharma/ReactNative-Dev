@@ -36,7 +36,7 @@ export default async function verifyUser(attributes?: Attributes) {
       useAppStorysStore().setUserId(data.user_id);
     }
     if (data.campaigns) {
-      useAppStorysStore().setCampaigns(data.campaigns);
+      useAppStorysStore().saveCampaigns(data.campaigns);
     }
   } catch (error) {
     console.error('Error in verifyUser', error);

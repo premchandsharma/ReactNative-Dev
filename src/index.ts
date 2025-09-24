@@ -12,8 +12,8 @@ import CaptureScreenButton from "./components/CaptureScreenButton";
 import Measurable from "./domain/capture/Measurable";
 import Modal from './components/Modal';
 import BottomSheet from './components/BottomSheet';
-import {ScreenOptions} from "./domain/sdk/types";
-import OverlayContainer from "./domain/sdk/OverlayContainer";
+import Screen from "./domain/screen/Screen";
+import {ScreenOptions} from "./domain/screen/types";
 
 export {AppStorys};
 export {
@@ -31,6 +31,6 @@ export {
   BottomSheet,
   CaptureScreenButton,
   Measurable,
-  OverlayContainer as Container
+  Screen as AppStorysScreen
 };
 export type {ScreenOptions as AppStorysScreenOptions};

@@ -1,13 +1,10 @@
-import React, {useCallback, useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import {PixelRatio, Platform, StatusBar} from 'react-native';
-import MeasurementContext from './MeasurementContext';
-import {MeasurementData} from "./types";
+import {ScreenProviderProps} from "./types";
+import ScreenContext from "./ScreenContext";
+import {MeasurementData} from "../capture/types";
 
-interface MeasurementProviderProps {
-  children: React.ReactNode;
-}
-
-export default function MeasurementProvider({children}: MeasurementProviderProps) {
+export default function ScreenProvider({name, options, children}: ScreenProviderProps) {
   // Use a ref to store the registered components.
   // This prevents re-renders every time a component registers.
   const registeredRefs = useRef(new Map<string, any>());
@@ -66,9 +63,16 @@ export default function MeasurementProvider({children}: MeasurementProviderProps
   }, []);
 
   return (
-    <MeasurementContext.Provider value={{register, unregister, measureAll, measure}}>
+    <ScreenContext.Provider value={{
+      name, options, context: {
+        register,
+        unregister,
+        measure,
+        measureAll,
+      }
+    }}>
       {children}
-    </MeasurementContext.Provider>
+    </ScreenContext.Provider>
   );
 }
 

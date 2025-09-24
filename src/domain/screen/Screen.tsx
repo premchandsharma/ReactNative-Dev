@@ -1,4 +1,3 @@
-import React from 'react';
 import {StyleSheet} from 'react-native';
 import TooltipConsumer from "../../components/tooltip/consumer";
 import Modal from '../../components/Modal';
@@ -10,17 +9,14 @@ import Survey from '../../components/Survey';
 import CaptureScreenButton from '../../components/CaptureScreenButton';
 import Pip from "../../components/pip";
 import {SafeAreaView} from "react-native-safe-area-context";
-import MeasurementProvider from "../capture/MeasurementProvider";
-import {useCaptureServiceStore} from "../capture/CaptureService";
+import ScreenProvider from "./ScreenProvider";
+import {ScreenProviderProps} from "./types";
+import {useCaptureServiceStore} from "../capture/store";
 
-interface OverlayContainerProps {
-  children: React.ReactNode;
-}
-
-export default function OverlayContainer({children}: OverlayContainerProps) {
-  const isCapturing = useCaptureServiceStore(state => state.isCapturing);
+export default function Screen({name, options, children}: ScreenProviderProps) {
+  const isCapturing = useCaptureServiceStore(state => state.isCapturing)[name];
   return (
-    <MeasurementProvider>
+    <ScreenProvider name={name} options={options}>
       {children}
       {
         !isCapturing && (
@@ -41,6 +37,6 @@ export default function OverlayContainer({children}: OverlayContainerProps) {
           </SafeAreaView>
         )
       }
-    </MeasurementProvider>
+    </ScreenProvider>
   );
 }
