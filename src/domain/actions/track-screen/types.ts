@@ -24,3 +24,5 @@ export type TrackScreenConfig = {
   userID: string;
   ws: WebSocketClientConfig
 }
+
+export type TrackScreenSource = 'screen' | 'sdk';
