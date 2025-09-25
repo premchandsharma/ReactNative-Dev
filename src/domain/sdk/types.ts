@@ -1,4 +1,4 @@
-import {CampaignTooltips} from "../tooltips/types";
+import { CampaignTooltips } from "../tooltips/types";
 
 export type CampaignFloater = {
   id: string,
@@ -31,6 +31,9 @@ export type CampaignStorySlide = {
 export type CampaignStoryGroup = {
   id: string,
   name: string,
+  styling: {
+    [key: string]: string;
+  },
   thumbnail: string,
   ringColor: string,
   nameColor: string,
@@ -217,7 +220,7 @@ export interface AppStorysActions {
 export type Campaign = (CampaignFloater | CampaignStory | CampaignBanner | CampaignPip | CampaignSurvey |
   CampaignTooltips |
   CampaignCsat | CampaignWidgets | CampaignModal | CampaignBottomSheet) & {
-  trigger_event?: string;
-  position?: string;
-  screen?: string;
-};
+    trigger_event?: string;
+    position?: string;
+    screen?: string;
+  };

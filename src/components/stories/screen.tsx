@@ -53,19 +53,30 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       return;
     }
 
-    const slides = params.slideData.details[groupIndex].slides;
+    const slides = params.slideData.details[groupIndex].slides || [];
+
+    if (slides.length === 0) {
+      // If this group has no slides, jump to the next one
+      const nextGroupIndex = groupIndex + 1;
+      if (nextGroupIndex < params.slideData.details.length) {
+        loadStoryGroup(nextGroupIndex);
+      } else {
+        close();
+      }
+      return;
+    }
+
     const transformedData = slides.map((storySlide) => ({
       ...storySlide,
       finish: 0,
     }));
 
-    // Remove this line if needed if the progress does not works properly
     progress.setValue(0);
-
     setContent(transformedData);
     setCurrent(0);
     setCurrentStorySlide(0);
   };
+
 
   // Share function
   const shareContent = async () => {
@@ -116,8 +127,15 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       setCurrent(current + 1);
       progress.setValue(0);
     } else {
-      // Move to next story group
-      const nextGroupIndex = currentGroupIndex + 1;
+      let nextGroupIndex = currentGroupIndex + 1;
+      while (
+        nextGroupIndex < params!.slideData.details.length &&
+        (!params!.slideData.details[nextGroupIndex]?.slides ||
+          params!.slideData.details[nextGroupIndex]?.slides.length === 0)
+      ) {
+        nextGroupIndex++;
+      }
+
       if (nextGroupIndex < params!.slideData.details.length) {
         setCurrentGroupIndex(nextGroupIndex);
         loadStoryGroup(nextGroupIndex);
@@ -126,6 +144,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       }
     }
   };
+
 
   const previous = () => {
     if (current > 0) {
@@ -136,16 +155,25 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       setContent(tempData);
       progress.setValue(0);
       setCurrent(current - 1);
-    } else if (currentGroupIndex > 0) {
-      // Move to previous story group
-      const prevGroupIndex = currentGroupIndex - 1;
-      setCurrentGroupIndex(prevGroupIndex);
-      // const prevGroupSlides = params!.slideData.details[prevGroupIndex].slides;
-      loadStoryGroup(prevGroupIndex);
-      // setCurrent(prevGroupSlides.length - 1);
-      setCurrent(0);
+    } else {
+      let prevGroupIndex = currentGroupIndex - 1;
+      while (
+        prevGroupIndex >= 0 &&
+        (!params!.slideData.details[prevGroupIndex]?.slides ||
+          params!.slideData.details[prevGroupIndex]?.slides.length === 0)
+      ) {
+        prevGroupIndex--;
+      }
+
+      if (prevGroupIndex >= 0) {
+        setCurrentGroupIndex(prevGroupIndex);
+        loadStoryGroup(prevGroupIndex);
+      } else {
+        close();
+      }
     }
   };
+
 
   const close = () => {
     console.log("Close function called");
@@ -215,6 +243,10 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
             resizeMode="contain"
             muted={mute}
             controls={false}
+            disableFocus={true}
+            ignoreSilentSwitch="ignore"
+            playInBackground={false} // keeps UI clean
+            preventsDisplaySleepDuringVideoPlayback={true}
             onLoad={(data: { duration: SetStateAction<number>; }) => {
               console.log("Video loaded with duration:", data.duration);
               setVideoDuration(data.duration);

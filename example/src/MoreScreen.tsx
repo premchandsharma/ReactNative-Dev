@@ -9,7 +9,7 @@ export default function MoreScreen() {
   }, []);
 
   return (
-    <AppStorys.Container options={{
+    <AppStorys.Container name='More Screen React' options={{
       overlayPadding: {
         pip: 40
       }

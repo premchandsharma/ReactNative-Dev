@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Image, Modal, ScrollView, StyleSheet, Text, TouchableWithoutFeedback, View } from 'react-native';
+import { Image, Modal, ScrollView, Text, TouchableWithoutFeedback, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import useCampaigns from "../../domain/actions/useCampaigns";
 import { CampaignStory, CampaignStoryGroup } from "../../domain/sdk/types";
@@ -97,36 +97,73 @@ export default function Stories() {
   if (!sortedDetailsData) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={{
+      width: '100%',
+      position: 'relative',
+      justifyContent: 'flex-start',
+      alignItems: 'center',
+      flexDirection: 'row',
+      backgroundColor: 'rgba(0, 0, 0, 0)',
+    }}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {sortedDetailsData.details.map((storyGroup, index) => {
+        {sortedDetailsData.details
+        .filter((storyGroup) => storyGroup.slides && storyGroup.slides.length > 0)
+        .map((storyGroup, index) => {
           const isViewed = viewedStories.has(storyGroup.id);
+          const size = storyGroup?.styling?.['size']
+            ? parseInt(storyGroup.styling['size'], 10) || 70
+            : 70;
           return (
-            <View key={storyGroup.id} style={styles.storyContainer}>
-              <View style={styles.storyWrapper}>
+            <View key={storyGroup.id} style={{
+              flexDirection: 'row',
+              flex: 1,
+              width: size + 16,
+              backgroundColor: 'rgba(0, 0, 0, 0)',
+              justifyContent: 'center',
+            }}>
+              <View style={{
+                marginTop: 6,
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
                 <TouchableWithoutFeedback onPress={() => {
                   onNavigate(sortedDetailsData, index)
                   void trackEvent("clicked", sortedDetailsData.id)
                 }}>
                   <View
-                    style={[
-                      styles.thumbnailContainer,
-                      { borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor }
-                    ]}
+                    style={{
+                      height: size,
+                      width: size,
+                      borderRadius: size,
+                      borderWidth: 2,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      borderColor: isViewed ? GREY_COLOR : storyGroup.ringColor
+                    }}
                   >
-                    <Image source={{ uri: storyGroup.thumbnail }} style={[styles.thumbnail, {
-                      opacity: isViewed ? 0.6 : 1,
-                    }]} />
+                    <Image source={{ uri: storyGroup.thumbnail }} style={{
+                      width: size - 17,
+                      height: size - 17,
+                      borderRadius: size,
+                      overflow: 'hidden',
+                      opacity: isViewed ? 0.6 : 1
+                    }} />
                   </View>
                 </TouchableWithoutFeedback>
-                <Text style={{
-                  marginTop: 6,
-                  fontSize: 14,
-                  fontWeight: '500',
-                  color: isViewed ? GREY_COLOR : storyGroup.nameColor,
-                  textAlign: 'center',
-                }}
-                >{storyGroup.name}</Text>
+                {storyGroup.name ? (
+                  <Text
+                    style={{
+                      marginTop: 6,
+                      fontSize: 14,
+                      fontWeight: '500',
+                      color: isViewed ? GREY_COLOR : storyGroup.nameColor,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {storyGroup.name}
+                  </Text>
+                ) : null}
+
               </View>
             </View>
           );
@@ -149,40 +186,3 @@ export default function Stories() {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    width: '100%',
-    position: 'relative',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  storyContainer: {
-    flexDirection: 'row',
-    flex: 1,
-    height: 135,
-    width: 98,
-    backgroundColor: 'rgba(255, 255, 255, 0)',
-    justifyContent: 'center',
-  },
-  storyWrapper: {
-    marginTop: 6,
-    flexDirection: 'column',
-    alignItems: 'center',
-  },
-  thumbnailContainer: {
-    height: 82,
-    width: 82,
-    borderRadius: 45,
-    borderWidth: 2,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  thumbnail: {
-    width: 65,
-    height: 65,
-    borderRadius: 35,
-    overflow: 'hidden',
-  },
-});
