@@ -7,8 +7,9 @@ export default function MoreScreen() {
   useEffect(() => {
     void AppStorys.trackScreen("More Screen React");
   }, []);
+
   return (
-    <AppStorys.Screen name="More Screen React" options={{
+    <AppStorys.Container options={{
       overlayPadding: {
         pip: 40
       }
@@ -65,7 +66,7 @@ export default function MoreScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </AppStorys.Screen>
+    </AppStorys.Container>
   );
 }
 

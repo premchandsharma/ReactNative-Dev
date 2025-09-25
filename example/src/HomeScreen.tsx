@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppStorys} from '@appstorys/appstorys-react-native';
@@ -6,10 +6,6 @@ import {AppStorys} from '@appstorys/appstorys-react-native';
 export default function HomeScreen() {
   const [switchValue, setSwitchValue] = useState(false);
   const [inputText, setInputText] = useState('');
-
-  useEffect(() => {
-    void AppStorys.trackScreen("Home Screen React");
-  }, []);
 
   return (
     <AppStorys.Screen name="Home Screen React" options={{

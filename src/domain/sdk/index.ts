@@ -20,9 +20,10 @@ import trackUserAction from '../actions/trackUserAction';
 import verifyAccount from '../actions/verifyAccount';
 import verifyUser from '../actions/verifyUser';
 import Measurable from '../capture/Measurable';
+import Screen from "../screen/Screen";
+import Container from "../screen/Container";
 import useAppStorysStore from "./store";
 import {Attributes} from "./types";
-import Screen from "../screen/Screen";
 
 class AppStorys {
   private isInitializing = false;
@@ -62,6 +63,8 @@ class AppStorys {
       this.isInitializing = false;
     }
   }
+
+  public Container = Container;
 
   public async trackUser(attributes?: Attributes) {
     await this.ensureInitialized();
@@ -119,6 +122,10 @@ class AppStorys {
 
   public Screen = Screen;
 
+  public async trackScreen(screenName: string) {
+    await this.ensureInitialized();
+    await trackScreen(screenName, arguments[1] !== false);
+  }
   public Stories = Stories;
   public StoriesScreen = StoriesScreen;
   public Floater = Floater;
@@ -133,11 +140,6 @@ class AppStorys {
   public Modal = Modal;
   public BottomSheet = BottomSheet;
   public Measurable = Measurable;
-
-  public async trackScreen(screenName: string) {
-    await this.ensureInitialized();
-    await trackScreen(screenName);
-  }
 }
 
 const instance = new AppStorys();
