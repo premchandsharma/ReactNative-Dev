@@ -10,7 +10,7 @@ export default function HomeScreen() {
   return (
     <AppStorys.Screen name="Home Screen React" options={{
       overlayPadding: {
-        pip: 40
+        pip: 180
       }
     }}>
       <SafeAreaView>

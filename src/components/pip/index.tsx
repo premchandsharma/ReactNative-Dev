@@ -1,18 +1,18 @@
-import {useEffect, useRef, useState} from "react";
-import {Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View} from "react-native";
-import {Gesture, GestureDetector} from "react-native-gesture-handler";
+import { useEffect, useRef, useState } from "react";
+import { Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Video from "react-native-video";
 import checkForImage from "../../domain/actions/checkForImage";
-import {subscribeToPipVisibility} from '../../domain/actions/pipState';
+import { subscribeToPipVisibility } from '../../domain/actions/pipState';
 import useCampaigns from "../../domain/actions/useCampaigns";
-import {CampaignPip} from "../../domain/sdk/types";
+import { CampaignPip } from "../../domain/sdk/types";
 import PipScreen from "./screen";
-import {PipData} from "./types";
+import { PipData } from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
 import usePadding from "../../domain/actions/usePadding";
 
 export default function Pip() {
-  const {width, height} = Dimensions.get("window");
+  const { width, height } = Dimensions.get("window");
 
   const data = useCampaigns<CampaignPip>("PIP");
 
@@ -41,7 +41,7 @@ export default function Pip() {
   const MAX_X = width - PIP_WIDTH - 20;
   const MAX_Y = height - (bottomPadding + PIP_HEIGHT) - 20;
   const MIN_X = 20;
-  const MIN_Y = Platform.OS === "ios" ? (60 + topPadding) : (20 + topPadding);
+  const MIN_Y = Platform.OS === "ios" ? (60) : (20);
 
   const [isPipVisible, setPipVisible] = useState(true);
   // const [isExpanded, setExpanded] = useState(false);
@@ -55,6 +55,16 @@ export default function Pip() {
 
   const initialY = height - (bottomPadding + pipBottomValue)
 
+  const isPlayable = (u?: string) => !!u && (/^https?:\/\//i.test(u) || /^file:\/\//i.test(u));
+  const toFileUri = (p?: string) => (p ? `file://${p.replace(/^file:\/\//, "")}` : "");
+
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+
+  // pick local file if available, else fallback to remote
+  const smallSrc = smallVideoPath ? toFileUri(smallVideoPath) : (data?.details.small_video ?? "");
+  const largeSrc = largeVideoPath ? toFileUri(largeVideoPath) : (data?.details.large_video ?? "");
+
+
   const pan = useRef(
     new Animated.ValueXY({
       x: 0,
@@ -63,7 +73,7 @@ export default function Pip() {
   ).current;
 
   useEffect(() => {
-    pan.setOffset({x: initialX, y: initialY});
+    pan.setOffset({ x: initialX, y: initialY });
   }, [])
 
   useEffect(() => {
@@ -95,7 +105,7 @@ export default function Pip() {
         id: data.id,
         link,
         button_text: data.details.button_text,
-        largeVideoUrl: `file://${largeVideoPath}`,
+        largeVideoUrl: largeSrc,
         styling: data.details.styling,
       });
       void trackEvent("viewed", data.id)
@@ -103,7 +113,7 @@ export default function Pip() {
   }
 
   // Store the initial offset values
-  const offsetRef = useRef({x: initialX, y: initialY});
+  const offsetRef = useRef({ x: initialX, y: initialY });
 
   const constrainPosition = (x: number, y: number) => {
     return {
@@ -128,13 +138,13 @@ export default function Pip() {
 
       offsetRef.current = constrainedPosition;
       pan.setOffset(constrainedPosition);
-      pan.setValue({x: 0, y: 0});
+      pan.setValue({ x: 0, y: 0 });
     })
     .simultaneousWithExternalGesture(); // Allow other gestures to work simultaneously
 
   return (
-    <View style={[StyleSheet.absoluteFill, {zIndex: 999998, top: topPadding, bottom: bottomPadding}]}
-          pointerEvents="box-none">
+    <View style={[StyleSheet.absoluteFill, { zIndex: 999998, top: topPadding, bottom: bottomPadding }]}
+      pointerEvents="box-none">
       {data && isPipVisible && (
         <GestureDetector gesture={panGesture}>
           <Animated.View
@@ -160,8 +170,8 @@ export default function Pip() {
               }
             }
           >
-            <Pressable onPress={expandPip} style={{flex: 1}}>
-              {data.details.small_video &&
+            <Pressable onPress={expandPip} style={{ flex: 1 }}>
+              {/* {data.details.small_video &&
                 data.details.large_video && (
                   <Video
                     repeat={true}
@@ -181,7 +191,30 @@ export default function Pip() {
                       right: 0,
                     }}
                   />
-                )}
+                )} */}
+              {isPlayable(smallSrc) && (
+                <Video
+                  repeat
+                  resizeMode="contain"
+                  muted={mute}
+                  controls={false}
+                  source={{ uri: smallSrc }}
+                  paused={isVideoLoading}                 // ✅ don’t play until loaded
+                  onLoadStart={() => setIsVideoLoading(true)}
+                  onLoad={() => setIsVideoLoading(false)} // ✅ starts playing
+                  onError={(e) => {
+                    setIsVideoLoading(false);
+                    console.warn("PIP small video error:", e || e);
+                  }}
+                  style={{
+                    borderRadius: 15,
+                    position: "absolute",
+                    overflow: "hidden",
+                    top: 0, left: 0, bottom: 0, right: 0,
+                  }}
+                />
+              )}
+
             </Pressable>
 
             <Pressable
@@ -232,7 +265,7 @@ export default function Pip() {
               />
             </Pressable>
 
-            {data.details.large_video != null && data.details.large_video != "" &&
+            { isPlayable(largeSrc) &&
               <Pressable
                 onPress={expandPip}
                 style={{
