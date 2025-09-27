@@ -20,12 +20,15 @@ async function getImageAspectRatio(path: string) {
 
 export default async function checkForCache(url: string, type: CacheType = 'image') {
   return new Promise<{ path: string; ratio: number | null } | null>(async (resolve) => {
-    const filename = url.split("/").pop()?.split("?")[0];
+    const filename =
+      decodeURIComponent(url.split("/").pop()?.split("?")[0] || '')
+        .replace(/[^a-zA-Z0-9._-]/g, '_'); // sanitize filename
+    if (!filename) {
+      console.error("Invalid filename extracted from URL:", url);
+      return resolve(null);
+    }
     const path = `${RNFS.CachesDirectoryPath}/${filename}`;
-    // Platform-specific path handling for simulators
-    const localPath = Platform.OS === 'android'
-      ? `file://${path}`  // Android needs file:// prefix
-      : path;
+    const localPath = Platform.OS === 'android' ? `file://${path}` : path;
 
     try {
       let exists = await RNFS.exists(path);
