@@ -20,6 +20,8 @@ export default function Overlay({name}: { name: ScreenProviderProps['name'] }) {
   }
 
   return (
+<>
+      <TooltipConsumer/>
     <SafeAreaView
       style={StyleSheet.absoluteFill}
       pointerEvents="box-none"
@@ -29,11 +31,11 @@ export default function Overlay({name}: { name: ScreenProviderProps['name'] }) {
       <Floater/>
       <Pip/>
       <Csat/>
-      <TooltipConsumer/>
       <Survey/>
       <BottomSheet/>
       <Modal/>
       <CaptureScreenButton/>
     </SafeAreaView>
+    </>
   );
 }

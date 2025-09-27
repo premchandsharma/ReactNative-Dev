@@ -126,6 +126,7 @@ class TooltipManager {
     try {
       const screenSize = Dimensions.get('window');
 
+      console.log('Showing tooltip for element:', targetElement, 'with data:', data);
       const position = {
         x: targetElement.position.logicalX,
         y: targetElement.position.logicalY
