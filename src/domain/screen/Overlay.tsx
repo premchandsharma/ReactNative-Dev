@@ -13,8 +13,6 @@ import {ScreenProviderProps} from "./types";
 import {useCaptureServiceStore} from "../capture/store";
 
 export default function Overlay({name}: { name: ScreenProviderProps['name'] }) {
-  console.log('Overlay rendered for screen:', name);
-
   const isCapturing = useCaptureServiceStore(state => state.isCapturing)[name];
 
   if (isCapturing) {

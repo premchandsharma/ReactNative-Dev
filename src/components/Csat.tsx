@@ -1,7 +1,7 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {
   Image,
-  KeyboardAvoidingView,
+  Keyboard,
   Linking,
   Platform,
   ScrollView,
@@ -24,9 +24,39 @@ export default function Csat() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [additionalComments, setAdditionalComments] = useState('');
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  const scrollViewRef = useRef<ScrollView>(null);
+  const textInputRef = useRef<TextInput>(null);
 
   const data = useCampaigns<CampaignCsat>("CSAT");
   const padding = usePadding('CSAT')?.bottom || 0;
+
+  useEffect(() => {
+    const keyboardWillShow = (event: any) => {
+      setKeyboardHeight(event.endCoordinates.height);
+      // Scroll to TextInput when keyboard appears
+      setTimeout(() => {
+        textInputRef.current?.focus();
+        scrollViewRef.current?.scrollToEnd({animated: true});
+      }, 100);
+    };
+
+    const keyboardWillHide = () => {
+      setKeyboardHeight(0);
+    };
+
+    const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const keyboardHideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(keyboardShowEvent, keyboardWillShow);
+    const hideSubscription = Keyboard.addListener(keyboardHideEvent, keyboardWillHide);
+
+    return () => {
+      showSubscription?.remove();
+      hideSubscription?.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (data && data.id && !viewed.has(data.id)) {
@@ -94,165 +124,170 @@ export default function Csat() {
   );
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={100}
-      style={{flex: 1}}
-    >
-      <View style={[styles.container, {bottom: padding + 10}]}>
-        <View style={[styles.card, {backgroundColor: data.details.styling["csatBackgroundColor"]}]}>
-          <TouchableOpacity
+
+    <View style={[styles.container, {bottom: padding + 10}]}>
+      <View style={[styles.card, {backgroundColor: data.details.styling["csatBackgroundColor"]}]}>
+        <TouchableOpacity
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            backgroundColor: data.details.styling["csatCtaBackgroundColor"],
+            borderRadius: 16,
+            padding: 8,
+            zIndex: 1,
+          }}
+          onPress={() => setShowCsat(false)}
+        >
+          <Image
+            source={require("../assets/images/close.png")}
             style={{
-              position: 'absolute',
-              top: 16,
-              right: 16,
-              backgroundColor: data.details.styling["csatCtaBackgroundColor"],
-              borderRadius: 16,
-              padding: 8,
-              zIndex: 1,
+              tintColor: data.details.styling["csatCtaTextColor"],
+              width: 13,
+              height: 13,
             }}
-            onPress={() => setShowCsat(false)}
-          >
-            <Image
-              source={require("../assets/images/close.png")}
-              style={{
-                tintColor: data.details.styling["csatCtaTextColor"],
-                width: 13,
-                height: 13,
-              }}
-            />
-          </TouchableOpacity>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{flexGrow: 1}}
-          >
-            {showThanks ? (
-              <View style={styles.thanksContainer}>
-                {data.details.thankyouImage && (
-                  <Image
-                    source={{uri: data.details.thankyouImage}}
-                    style={styles.thanksImage}
-                  />
-                )}
-                <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
-                  {data.details.thankyouText}
-                </Text>
-                <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
-                  {data.details.thankyouDescription}
-                </Text>
-                <TouchableOpacity
-                  style={[styles.button, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
-                  onPress={() => {
-                    setShowCsat(false);
-                    if (selectedStars > 3) {
-                      void Linking.openURL(data.details.link);
-                    }
-                  }}
+          />
+        </TouchableOpacity>
+        <ScrollView
+          ref={scrollViewRef}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: keyboardHeight > 0 ? keyboardHeight - 50 : 0
+          }}
+        >
+          {showThanks ? (
+            <View style={styles.thanksContainer}>
+              {data.details.thankyouImage && (
+                <Image
+                  source={{uri: data.details.thankyouImage}}
+                  style={styles.thanksImage}
+                />
+              )}
+              <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
+                {data.details.thankyouText}
+              </Text>
+              <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
+                {data.details.thankyouDescription}
+              </Text>
+              <TouchableOpacity
+                style={[styles.button, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
+                onPress={() => {
+                  setShowCsat(false);
+                  if (selectedStars > 3) {
+                    void Linking.openURL(data.details.link);
+                  }
+                }}
 
-                >
-                  <Text style={[styles.buttonText, {color: data.details.styling["csatCtaTextColor"]}]}>
-                    {
-                      selectedStars > 3 ? (data.details.highStarText || "Done") : (data.details.lowStarText || "Done")
-                    }
-                  </Text>
-                </TouchableOpacity>
+              >
+                <Text style={[styles.buttonText, {color: data.details.styling["csatCtaTextColor"]}]}>
+                  {
+                    selectedStars > 3 ? (data.details.highStarText || "Done") : (data.details.lowStarText || "Done")
+                  }
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View>
+              <Text style={[styles.title, {color: data.details.styling["csatTitleColor"]}]}>
+                {data.details.title}
+              </Text>
+              <Text style={[styles.description, {color: data.details.styling["csatDescriptionTextColor"]}]}>
+                {data.details.description_text}
+              </Text>
+              <View style={styles.starsContainer}>
+                {Array.from({length: 5}).map((_, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => handleStarPress(index)}
+                    activeOpacity={1}
+                  >
+                    <Image source={require("../assets/images/star.png")} style={{
+                      tintColor:
+                        index < selectedStars
+                          ? selectedStars > 3
+                            ? data.details.styling["csatHighStarColor"]
+                            : data.details.styling["csatLowStarColor"]
+                          : data.details.styling["csatUnselectedStarColor"],
+                      width: 32,
+                      height: 32,
+                      marginEnd: 6,
+                    }}/>
+                  </TouchableOpacity>
+                ))}
               </View>
-            ) : (
-              <View>
-                <Text style={[styles.title, {color: data.details.styling["csatTitleColor"]}]}>
-                  {data.details.title}
-                </Text>
-                <Text style={[styles.description, {color: data.details.styling["csatDescriptionTextColor"]}]}>
-                  {data.details.description_text}
-                </Text>
-                <View style={styles.starsContainer}>
-                  {Array.from({length: 5}).map((_, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      onPress={() => handleStarPress(index)}
-                      activeOpacity={1}
-                    >
-                      <Image source={require("../assets/images/star.png")} style={{
-                        tintColor:
-                          index < selectedStars
-                            ? selectedStars > 3
-                              ? data.details.styling["csatHighStarColor"]
-                              : data.details.styling["csatLowStarColor"]
-                            : data.details.styling["csatUnselectedStarColor"],
-                        width: 32,
-                        height: 32,
-                        marginEnd: 6,
-                      }}/>
-                    </TouchableOpacity>
-                  ))}
-                </View>
 
-                {showFeedback && (
-                  <View style={styles.feedbackContainer}>
-                    {/* <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
+              {showFeedback && (
+                <View style={styles.feedbackContainer}>
+                  {/* <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
                     Please tell us what went wrong.
                   </Text> */}
-                    {feedbackOptions.map((option) => (
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        key={option.id}
+                  {feedbackOptions.map((option) => (
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      key={option.id}
+                      style={[
+                        styles.optionButton,
+                        {
+                          backgroundColor:
+                            selectedOption === option.name
+                              ? data.details.styling["csatSelectedOptionBackgroundColor"]
+                              : data.details.styling["csatOptionBoxColour"],
+                          borderColor:
+                            selectedOption === option.name
+                              ? data.details.styling["csatSelectedOptionStrokeColor"]
+                              : data.details.styling["csatOptionStrokeColor"],
+                        },
+                      ]}
+                      onPress={() => setSelectedOption(option.name)}
+                    >
+                      <Text
                         style={[
-                          styles.optionButton,
+                          styles.optionText,
                           {
-                            backgroundColor:
+                            color:
                               selectedOption === option.name
-                                ? data.details.styling["csatSelectedOptionBackgroundColor"]
-                                : data.details.styling["csatOptionBoxColour"],
-                            borderColor:
-                              selectedOption === option.name
-                                ? data.details.styling["csatSelectedOptionStrokeColor"]
-                                : data.details.styling["csatOptionStrokeColor"],
+                                ? data.details.styling["csatSelectedOptionTextColor"]
+                                : data.details.styling["csatOptionTextColour"],
                           },
                         ]}
-                        onPress={() => setSelectedOption(option.name)}
                       >
-                        <Text
-                          style={[
-                            styles.optionText,
-                            {
-                              color:
-                                selectedOption === option.name
-                                  ? data.details.styling["csatSelectedOptionTextColor"]
-                                  : data.details.styling["csatOptionTextColour"],
-                            },
-                          ]}
-                        >
-                          {option.name}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-
-                    <TextInput
-                      style={[styles.input, {color: data.details.styling["csatAdditionalTextColor"]}]}
-                      value={additionalComments}
-                      onChangeText={setAdditionalComments}
-                      placeholder="Your feedback"
-                      placeholderTextColor={data.details.styling.csatDescriptionTextColor}
-                    />
-
-                    <TouchableOpacity
-                      style={[styles.submitButton, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
-                      onPress={
-                        handleSubmitFeedback
-                      }
-                    >
-                      <Text style={[styles.submitText, {color: data.details.styling["csatCtaTextColor"]}]}>
-                        Submit
+                        {option.name}
                       </Text>
                     </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            )}
-          </ScrollView>
-        </View>
+                  ))}
+
+                  <TextInput
+                    ref={textInputRef}
+                    style={[styles.input, {color: data.details.styling["csatAdditionalTextColor"]}]}
+                    value={additionalComments}
+                    onChangeText={setAdditionalComments}
+                    placeholder="Your feedback"
+                    placeholderTextColor={data.details.styling.csatDescriptionTextColor}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({animated: true});
+                      }, 300);
+                    }}
+                  />
+
+                  <TouchableOpacity
+                    style={[styles.submitButton, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
+                    onPress={
+                      handleSubmitFeedback
+                    }
+                  >
+                    <Text style={[styles.submitText, {color: data.details.styling["csatCtaTextColor"]}]}>
+                      Submit
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+        </ScrollView>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

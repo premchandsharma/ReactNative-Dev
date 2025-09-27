@@ -19,9 +19,7 @@ export default function Modal() {
   const [imagePath, setImagePath] = useState<string | null>(null);
 
   const [modalHeight, setModalHeight] = useState<number>(200);
-//   const { width, height } = Dimensions.get("window");
 
-  // Find modal campaign data
   const data = useCampaigns<CampaignModal>("MOD");
 
   const modalDetails = data?.details || null;
@@ -43,7 +41,9 @@ export default function Modal() {
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
+        console.log('Checking cache for modal image:', imageUrl);
         checkForCache(imageUrl).then((result) => {
+          console.log('Cache result for modal image:', result);
           if (!result) return;
           setImagePath(result.path);
           if (result.ratio) {
