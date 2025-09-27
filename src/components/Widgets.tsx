@@ -12,7 +12,7 @@ import {useEffect, useMemo, useRef, useState} from "react";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignWidgets} from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 
 interface WidgetImage {
   id: string;
@@ -62,7 +62,7 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
     const cacheImages = async () => {
       let ratio: number | null = null;
       const cachedImagePromises = data.details.widget_images.map(async (item) => {
-        const result = await checkForImage(item.image);
+        const result = await checkForCache(item.image);
         if (!ratio && result?.ratio) {
           ratio = result.ratio;
           setWidgetHeight(contentWidth * ratio);

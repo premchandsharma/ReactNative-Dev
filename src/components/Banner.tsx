@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 
 import {Dimensions, Image, Linking, StyleSheet, TouchableOpacity, View} from "react-native";
 import {CampaignBanner} from "../domain/sdk/types";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from "../domain/actions/trackEvent";
 import usePadding from "../domain/actions/usePadding";
@@ -35,7 +35,7 @@ export default function Banner() {
   useEffect(() => {
     if (data && data.id) {
       void trackEvent("viewed", data.id);
-      checkForImage(data.details.image).then((result) => {
+      checkForCache(data.details.image).then((result) => {
         if (!result) return;
 
         setImagePath(result.path);

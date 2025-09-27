@@ -15,7 +15,7 @@ import {
 } from "react-native";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignBottomSheet} from "../domain/sdk/types";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 import trackEvent from "../domain/actions/trackEvent";
 
 const {height: SCREEN_HEIGHT} = Dimensions.get("window");
@@ -121,7 +121,7 @@ export default function BottomSheet() {
 
       // Cache image if exists
       if (imageElement?.url) {
-        checkForImage(imageElement.url).then((result) => {
+        checkForCache(imageElement.url).then((result) => {
           if (result?.path) {
             setImageCache(prev => ({...prev, [imageElement.url!]: result.path}));
           }

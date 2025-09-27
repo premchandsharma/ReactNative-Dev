@@ -11,7 +11,7 @@ import {
 // import LottieView from "lottie-react-native";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignModal} from "../domain/sdk/types";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 import trackEvent from "../domain/actions/trackEvent";
 
 export default function Modal() {
@@ -43,7 +43,7 @@ export default function Modal() {
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        checkForImage(imageUrl).then((result) => {
+        checkForCache(imageUrl).then((result) => {
           if (!result) return;
           setImagePath(result.path);
           if (result.ratio) {

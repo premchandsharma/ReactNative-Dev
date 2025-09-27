@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useRef, useState } from "react";
+import {SetStateAction, useEffect, useRef, useState} from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -13,10 +13,10 @@ import {
   View,
 } from "react-native";
 import Video from "react-native-video";
-import { CampaignStorySlide } from "../../domain/sdk/types";
-import { StoryData } from "./types";
+import {CampaignStorySlide} from "../../domain/sdk/types";
+import {StoryData} from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
-import checkForImage from "../../domain/actions/checkForImage";
+import checkForCache from "../../domain/actions/checkForCache";
 
 const closeImage = require("../../assets/images/close.png");
 const shareImage = require("../../assets/images/share.png");
@@ -77,14 +77,16 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
 
     if (content[current]?.video) {
       setIsVideoLoading(true);
-      void checkForImage(content[current].video, (path) => {
-        setCachedVideoPath(`file://${path}`);
+      checkForCache(content[current].video).then((result) => {
+        if (!result) return;
+        setCachedVideoPath(result.path);
         setIsVideoCached(true);
       });
     } else if (content[current]?.image) {
       setIsImageLoading(true);
-      void checkForImage(content[current].image, (path) => {
-        setCachedImagePath(`file://${path}`);
+      checkForCache(content[current].image).then((result) => {
+        if (!result) return;
+        setCachedImagePath(result.path);
         setIsImageCached(true);
       });
     }

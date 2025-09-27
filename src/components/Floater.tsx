@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
 import {Image, Linking, StyleSheet, TouchableOpacity, View,} from "react-native";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignFloater} from "../domain/sdk/types";
 import trackEvent from "../domain/actions/trackEvent";
@@ -23,7 +23,7 @@ export default function Floater() {
     }
     // void checkForImage(data.details.image, setImagePath);
     void trackEvent("viewed", data.id)
-    checkForImage(data.details.image).then((result) => {
+    checkForCache(data.details.image).then((result) => {
       if (!result) return;
 
       setImagePath(result.path);

@@ -1,6 +1,8 @@
 import RNFS from "react-native-fs";
 import {Image} from "react-native";
 
+type CacheType = 'image' | 'video';
+
 async function getImageAspectRatio(path: string) {
   return new Promise<number | null>(async (resolve) => {
     Image.getSize(
@@ -16,35 +18,34 @@ async function getImageAspectRatio(path: string) {
   });
 }
 
-export default async function checkForImage(url: string) {
+export default async function checkForCache(url: string, type: CacheType = 'image') {
   return new Promise<{ path: string; ratio: number | null } | null>(async (resolve) => {
     const filename = url.split("/").pop()?.split("?")[0];
     const path = `${RNFS.CachesDirectoryPath}/${filename}`;
     const localPath = `file://${path}`;
 
     try {
-      const exists = await RNFS.exists(path);
-      if (exists) {
-        const ratio = await getImageAspectRatio(localPath);
-        return resolve({path: localPath, ratio});
+      let exists = await RNFS.exists(path);
+      if (!exists) {
+        // download the image if it doesn't exist
+        const downloadResult = await RNFS.downloadFile({
+          fromUrl: url,
+          toFile: path,
+        }).promise;
+        if (downloadResult.statusCode !== 200) {
+          console.error("Failed to download image:", downloadResult);
+        } else {
+          console.log("Image downloaded!");
+          exists = true;
+        }
       }
-
-      // download the image if it doesn't exist
-      const downloadResult = await RNFS.downloadFile({
-        fromUrl: url,
-        toFile: path,
-      }).promise;
-      if (downloadResult.statusCode === 200) {
-        console.log("Image downloaded!");
-        const ratio = await getImageAspectRatio(localPath);
+      if (exists) {
+        const ratio = type === 'image' ? await getImageAspectRatio(localPath) : null;
         return resolve({path: localPath, ratio});
-      } else {
-        console.error("Failed to download image:", downloadResult);
       }
     } catch (error) {
       console.error("Error checking cache for image:", error);
     }
-
     return resolve(null);
   });
 }

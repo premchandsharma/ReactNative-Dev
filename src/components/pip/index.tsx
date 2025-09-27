@@ -1,13 +1,13 @@
-import { useEffect, useRef, useState } from "react";
-import { Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View } from "react-native";
-import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import {useEffect, useRef, useState} from "react";
+import {Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View} from "react-native";
+import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import Video from "react-native-video";
-import checkForImage from "../../domain/actions/checkForImage";
-import { subscribeToPipVisibility } from '../../domain/actions/pipState';
+import checkForCache from "../../domain/actions/checkForCache";
+import {subscribeToPipVisibility} from '../../domain/actions/pipState';
 import useCampaigns from "../../domain/actions/useCampaigns";
-import { CampaignPip } from "../../domain/sdk/types";
+import {CampaignPip} from "../../domain/sdk/types";
 import PipScreen from "./screen";
-import { PipData } from "./types";
+import {PipData} from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
 import usePadding from "../../domain/actions/usePadding";
 
@@ -79,12 +79,12 @@ export default function Pip() {
   useEffect(() => {
     if (data && data.id) {
       void trackEvent("viewed", data.id)
-      checkForImage(data.details.small_video).then((result) => {
+      checkForCache(data.details.small_video).then((result) => {
         if (result?.path) {
           setSmallVideoPath(result.path);
         }
       });
-      checkForImage(data.details.large_video).then((result) => {
+      checkForCache(data.details.large_video).then((result) => {
         if (result?.path) {
           setLargeVideoPath(result.path);
         }
