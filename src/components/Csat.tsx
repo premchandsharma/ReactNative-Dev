@@ -1,21 +1,11 @@
 import {useEffect, useRef, useState} from 'react';
-import {
-  Image,
-  Keyboard,
-  Linking,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Image, Linking, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View,} from 'react-native';
 import {CampaignCsat} from '../domain/sdk/types';
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
 import useCampaigns from "../domain/actions/useCampaigns";
 import trackEvent from '../domain/actions/trackEvent';
 import usePadding from "../domain/actions/usePadding";
+import useKeyboardHeight from "../domain/actions/useKeyboardHeight";
 
 export default function Csat() {
   const [showCsat, setShowCsat] = useState(false);
@@ -24,39 +14,16 @@ export default function Csat() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [additionalComments, setAdditionalComments] = useState('');
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useKeyboardHeight(() => {
+    textInputRef.current?.focus();
+    scrollViewRef.current?.scrollToEnd({animated: true});
+  });
 
   const scrollViewRef = useRef<ScrollView>(null);
   const textInputRef = useRef<TextInput>(null);
 
   const data = useCampaigns<CampaignCsat>("CSAT");
   const padding = usePadding('CSAT')?.bottom || 0;
-
-  useEffect(() => {
-    const keyboardWillShow = (event: any) => {
-      setKeyboardHeight(event.endCoordinates.height);
-      // Scroll to TextInput when keyboard appears
-      setTimeout(() => {
-        textInputRef.current?.focus();
-        scrollViewRef.current?.scrollToEnd({animated: true});
-      }, 100);
-    };
-
-    const keyboardWillHide = () => {
-      setKeyboardHeight(0);
-    };
-
-    const keyboardShowEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const keyboardHideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSubscription = Keyboard.addListener(keyboardShowEvent, keyboardWillShow);
-    const hideSubscription = Keyboard.addListener(keyboardHideEvent, keyboardWillHide);
-
-    return () => {
-      showSubscription?.remove();
-      hideSubscription?.remove();
-    };
-  }, []);
 
   useEffect(() => {
     if (data && data.id && !viewed.has(data.id)) {
@@ -153,7 +120,7 @@ export default function Csat() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: keyboardHeight ? 100 : 0
+            paddingBottom: keyboardHeight * 0.6,
           }}
         >
           {showThanks ? (
