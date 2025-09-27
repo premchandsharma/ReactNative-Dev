@@ -96,8 +96,6 @@ export default function Modal() {
       borderRadius: borderRadius,
     };
 
-    console.log('Rendering media of type:', mediaType, 'with style:', mediaStyle);
-
     switch (mediaType) {
       //   case "lottie":
       //     return (
@@ -114,7 +112,6 @@ export default function Modal() {
       case "image":
       default:
         if (!imagePath) {
-          console.log('No image path available yet.');
           return null
         }
 
@@ -148,8 +145,6 @@ export default function Modal() {
 
   // Only render if we have modal data and it should be visible
   if (!modalDetails || !isModalVisible || !data || !imageUrl) {
-    console.log('Modal not rendered: missing details or not visible',
-      {modalDetails, isModalVisible, data, imageUrl});
     return null;
   }
 

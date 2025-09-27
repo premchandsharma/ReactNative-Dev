@@ -1,5 +1,5 @@
 import RNFS from "react-native-fs";
-import {Image} from "react-native";
+import {Image, Platform} from "react-native";
 
 type CacheType = 'image' | 'video';
 
@@ -22,10 +22,14 @@ export default async function checkForCache(url: string, type: CacheType = 'imag
   return new Promise<{ path: string; ratio: number | null } | null>(async (resolve) => {
     const filename = url.split("/").pop()?.split("?")[0];
     const path = `${RNFS.CachesDirectoryPath}/${filename}`;
-    const localPath = `file://${path}`;
+    // Platform-specific path handling for simulators
+    const localPath = Platform.OS === 'android'
+      ? `file://${path}`  // Android needs file:// prefix
+      : path;
 
     try {
       let exists = await RNFS.exists(path);
+      console.log('Cache check for', filename, 'exists:', exists, 'at path:', path);
       if (!exists) {
         // download the image if it doesn't exist
         const downloadResult = await RNFS.downloadFile({

@@ -153,7 +153,7 @@ export default function Csat() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{
             flexGrow: 1,
-            paddingBottom: keyboardHeight > 0 ? keyboardHeight - 50 : 0
+            paddingBottom: keyboardHeight ? 100 : 0
           }}
         >
           {showThanks ? (
