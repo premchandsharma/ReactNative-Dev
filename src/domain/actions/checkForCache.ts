@@ -32,7 +32,6 @@ export default async function checkForCache(url: string, type: CacheType = 'imag
 
     try {
       let exists = await RNFS.exists(path);
-      console.log('Cache check for', filename, 'exists:', exists, 'at path:', path);
       if (!exists) {
         // download the image if it doesn't exist
         const downloadResult = await RNFS.downloadFile({
