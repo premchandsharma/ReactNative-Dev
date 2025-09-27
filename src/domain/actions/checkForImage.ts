@@ -19,7 +19,7 @@ async function getImageAspectRatio(path: string) {
 export default async function checkForImage(url: string) {
   return new Promise<{ path: string; ratio: number | null } | null>(async (resolve) => {
     const filename = url.split("/").pop()?.split("?")[0];
-    const path = `${RNFS.DocumentDirectoryPath}/${filename}`;
+    const path = `${RNFS.CachesDirectoryPath}/${filename}`;
     const localPath = `file://${path}`;
 
     try {
