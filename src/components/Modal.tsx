@@ -41,9 +41,7 @@ export default function Modal() {
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        console.log('Checking cache for modal image:', imageUrl);
         checkForCache(imageUrl).then((result) => {
-          console.log('Cache result for modal image:', result);
           if (!result) return;
           setImagePath(result.path);
           if (result.ratio) {
@@ -98,6 +96,8 @@ export default function Modal() {
       borderRadius: borderRadius,
     };
 
+    console.log('Rendering media of type:', mediaType, 'with style:', mediaStyle);
+
     switch (mediaType) {
       //   case "lottie":
       //     return (
@@ -113,13 +113,34 @@ export default function Modal() {
       case "gif":
       case "image":
       default:
-        if (!imagePath) return null;
+        if (!imagePath) {
+          console.log('No image path available yet.');
+          return null
+        }
 
         return (
           <Image
             source={{uri: imagePath}}
             style={[mediaStyle, styles.mediaContent]}
             resizeMode="contain"
+            onError={(e) => {
+              console.error("Failed to load image:", e.nativeEvent.error);
+            }}
+            onLoad={
+              (e) => {
+                console.log("Image loaded successfully", e);
+              }
+            }
+            onLoadEnd={
+              () => {
+                console.log("Image load ended");
+              }
+            }
+            onPartialLoad={
+              () => {
+                console.log("Image partial load");
+              }
+            }
           />
         );
     }
@@ -127,6 +148,8 @@ export default function Modal() {
 
   // Only render if we have modal data and it should be visible
   if (!modalDetails || !isModalVisible || !data || !imageUrl) {
+    console.log('Modal not rendered: missing details or not visible',
+      {modalDetails, isModalVisible, data, imageUrl});
     return null;
   }
 
