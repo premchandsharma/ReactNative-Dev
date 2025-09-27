@@ -83,8 +83,6 @@ function getMeasurementData(id: string, x: number, y: number, width: number, hei
   // Get status bar height and pixel ratio for accurate measurements
   const pixelRatio = PixelRatio.get();
 
-  console.log('StatusBarHeight:', insets.top, 'PixelRatio:', pixelRatio);
-
   // Detect if we need to adjust for status bar
   // In edge-to-edge mode, we typically need to add statusBarHeight
   // You can also check this via your app's window insets configuration
