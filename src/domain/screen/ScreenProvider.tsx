@@ -1,10 +1,13 @@
 import {useCallback, useRef} from 'react';
-import {PixelRatio, Platform, StatusBar} from 'react-native';
+import {PixelRatio, Platform} from 'react-native';
 import {ScreenProviderProps} from "./types";
 import ScreenContext from "./ScreenContext";
 import {MeasurementData} from "../capture/types";
+import {EdgeInsets, useSafeAreaInsets} from "react-native-safe-area-context";
 
 export default function ScreenProvider({name, options, children}: ScreenProviderProps) {
+  const insets = useSafeAreaInsets();
+
   // Use a ref to store the registered components.
   // This prevents re-renders every time a component registers.
   const registeredRefs = useRef(new Map<string, any>());
@@ -32,7 +35,7 @@ export default function ScreenProvider({name, options, children}: ScreenProvider
       refsToMeasure.forEach(([id, ref]) => {
         if (ref && typeof ref.measureInWindow === 'function') {
           ref.measureInWindow((x: number, y: number, width: number, height: number) => {
-            data.push(getMeasurementData(id, x, y, width, height));
+            data.push(getMeasurementData(id, x, y, width, height, insets));
           });
         } else {
           console.warn(`Could not measure component with id: ${id}`);
@@ -46,7 +49,7 @@ export default function ScreenProvider({name, options, children}: ScreenProvider
         }
       });
     })
-  }, []);
+  }, [insets]);
 
   // Re-measure specific components by ID
   const measure = useCallback(async (id: string) => {
@@ -57,10 +60,10 @@ export default function ScreenProvider({name, options, children}: ScreenProvider
 
     return new Promise<MeasurementData | null>((resolve) => {
       ref.measureInWindow((x: number, y: number, width: number, height: number) => {
-        resolve(getMeasurementData(id, x, y, width, height));
+        resolve(getMeasurementData(id, x, y, width, height, insets));
       });
     });
-  }, []);
+  }, [insets]);
 
   return (
     <ScreenContext.Provider value={{
@@ -76,15 +79,16 @@ export default function ScreenProvider({name, options, children}: ScreenProvider
   );
 }
 
-function getMeasurementData(id: string, x: number, y: number, width: number, height: number): MeasurementData {
+function getMeasurementData(id: string, x: number, y: number, width: number, height: number, insets: EdgeInsets): MeasurementData {
   // Get status bar height and pixel ratio for accurate measurements
-  const statusBarHeight = StatusBar.currentHeight || 0;
   const pixelRatio = PixelRatio.get();
+
+  console.log('StatusBarHeight:', insets.top, 'PixelRatio:', pixelRatio);
 
   // Detect if we need to adjust for status bar
   // In edge-to-edge mode, we typically need to add statusBarHeight
   // You can also check this via your app's window insets configuration
-  const statusBarAdjustment = Platform.OS === 'android' && Platform.Version >= 35 ? statusBarHeight : 0;
+  const statusBarAdjustment = Platform.OS === 'ios' || (Platform.OS === 'android' && Platform.Version >= 35) ? insets.top : 0;
 
   // Convert logical pixels to physical pixels
   const physicalX = x * pixelRatio;
@@ -104,7 +108,7 @@ function getMeasurementData(id: string, x: number, y: number, width: number, hei
       x: physicalX,
       y: physicalY,
       logicalX: x,
-      logicalY: y + statusBarAdjustment,
+      logicalY: Platform.OS === 'android' ? y + statusBarAdjustment : y - statusBarAdjustment,
     },
     pixelRatio,
   }
