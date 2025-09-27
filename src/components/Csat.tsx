@@ -9,7 +9,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 import {CampaignCsat} from '../domain/sdk/types';
 import captureCsatResponse from "../domain/actions/captureCsatResponse";
@@ -95,172 +95,170 @@ export default function Csat() {
 
   return (
     <KeyboardAvoidingView
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={100}
       style={{flex: 1}}
-      behavior={Platform.OS === 'ios' ? 'position' : undefined}
-      keyboardVerticalOffset={60}
     >
-      <ScrollView
-        contentContainerStyle={{flexGrow: 1, justifyContent: 'center'}}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View
-          style={[styles.container, {bottom: padding + 10, position: undefined}]}> {/* Remove absolute positioning */}
-          <View style={[styles.card, {backgroundColor: data.details.styling["csatBackgroundColor"]}]}>
-            <TouchableOpacity
+      <View style={[styles.container, {bottom: padding + 10}]}>
+        <View style={[styles.card, {backgroundColor: data.details.styling["csatBackgroundColor"]}]}>
+          <TouchableOpacity
+            style={{
+              position: 'absolute',
+              top: 16,
+              right: 16,
+              backgroundColor: data.details.styling["csatCtaBackgroundColor"],
+              borderRadius: 16,
+              padding: 8,
+              zIndex: 1,
+            }}
+            onPress={() => setShowCsat(false)}
+          >
+            <Image
+              source={require("../assets/images/close.png")}
               style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                backgroundColor: data.details.styling["csatCtaBackgroundColor"],
-                borderRadius: 16,
-                padding: 8,
-                zIndex: 1,
+                tintColor: data.details.styling["csatCtaTextColor"],
+                width: 13,
+                height: 13,
               }}
-              onPress={() => setShowCsat(false)}
-            >
-              <Image source={require("../assets/images/close.png")}
-                     style={{
-                       tintColor: data.details.styling["csatCtaTextColor"],
-                       width: 13,
-                       height: 13,
-                     }}
-              />
-            </TouchableOpacity>
-            <ScrollView>
-              {showThanks ? (
-                <View style={styles.thanksContainer}>
-                  {data.details.thankyouImage && (
-                    <Image
-                      source={{uri: data.details.thankyouImage}}
-                      style={styles.thanksImage}
-                    />
-                  )}
-                  <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
-                    {data.details.thankyouText}
-                  </Text>
-                  <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
-                    {data.details.thankyouDescription}
-                  </Text>
-                  <TouchableOpacity
-                    style={[styles.button, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
-                    onPress={() => {
-                      setShowCsat(false);
-                      if (selectedStars > 3) {
-                        void Linking.openURL(data.details.link);
-                      }
-                    }}
+            />
+          </TouchableOpacity>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{flexGrow: 1}}
+          >
+            {showThanks ? (
+              <View style={styles.thanksContainer}>
+                {data.details.thankyouImage && (
+                  <Image
+                    source={{uri: data.details.thankyouImage}}
+                    style={styles.thanksImage}
+                  />
+                )}
+                <Text style={[styles.thanksTitle, {color: data.details.styling.csatTitleColor}]}>
+                  {data.details.thankyouText}
+                </Text>
+                <Text style={[styles.thanksDescription, {color: data.details.styling.csatDescriptionTextColor}]}>
+                  {data.details.thankyouDescription}
+                </Text>
+                <TouchableOpacity
+                  style={[styles.button, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
+                  onPress={() => {
+                    setShowCsat(false);
+                    if (selectedStars > 3) {
+                      void Linking.openURL(data.details.link);
+                    }
+                  }}
 
-                  >
-                    <Text style={[styles.buttonText, {color: data.details.styling["csatCtaTextColor"]}]}>
-                      {
-                        selectedStars > 3 ? (data.details.highStarText || "Done") : (data.details.lowStarText || "Done")
-                      }
-                    </Text>
-                  </TouchableOpacity>
+                >
+                  <Text style={[styles.buttonText, {color: data.details.styling["csatCtaTextColor"]}]}>
+                    {
+                      selectedStars > 3 ? (data.details.highStarText || "Done") : (data.details.lowStarText || "Done")
+                    }
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View>
+                <Text style={[styles.title, {color: data.details.styling["csatTitleColor"]}]}>
+                  {data.details.title}
+                </Text>
+                <Text style={[styles.description, {color: data.details.styling["csatDescriptionTextColor"]}]}>
+                  {data.details.description_text}
+                </Text>
+                <View style={styles.starsContainer}>
+                  {Array.from({length: 5}).map((_, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      onPress={() => handleStarPress(index)}
+                      activeOpacity={1}
+                    >
+                      <Image source={require("../assets/images/star.png")} style={{
+                        tintColor:
+                          index < selectedStars
+                            ? selectedStars > 3
+                              ? data.details.styling["csatHighStarColor"]
+                              : data.details.styling["csatLowStarColor"]
+                            : data.details.styling["csatUnselectedStarColor"],
+                        width: 32,
+                        height: 32,
+                        marginEnd: 6,
+                      }}/>
+                    </TouchableOpacity>
+                  ))}
                 </View>
-              ) : (
-                <View>
-                  <Text style={[styles.title, {color: data.details.styling["csatTitleColor"]}]}>
-                    {data.details.title}
-                  </Text>
-                  <Text style={[styles.description, {color: data.details.styling["csatDescriptionTextColor"]}]}>
-                    {data.details.description_text}
-                  </Text>
-                  <View style={styles.starsContainer}>
-                    {Array.from({length: 5}).map((_, index) => (
-                      <TouchableOpacity
-                        key={index}
-                        onPress={() => handleStarPress(index)}
-                        activeOpacity={1}
-                      >
-                        <Image source={require("../assets/images/star.png")} style={{
-                          tintColor:
-                            index < selectedStars
-                              ? selectedStars > 3
-                                ? data.details.styling["csatHighStarColor"]
-                                : data.details.styling["csatLowStarColor"]
-                              : data.details.styling["csatUnselectedStarColor"],
-                          width: 32,
-                          height: 32,
-                          marginEnd: 6,
-                        }}/>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
 
-                  {showFeedback && (
-                    <View style={styles.feedbackContainer}>
-                      {/* <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
-                        Please tell us what went wrong.
-                      </Text> */}
-                      {feedbackOptions.map((option) => (
-                        <TouchableOpacity
-                          activeOpacity={1}
-                          key={option.id}
+                {showFeedback && (
+                  <View style={styles.feedbackContainer}>
+                    {/* <Text style={[styles.feedbackPrompt, { color: data.details.styling.csatDescriptionTextColor }]}>
+                    Please tell us what went wrong.
+                  </Text> */}
+                    {feedbackOptions.map((option) => (
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        key={option.id}
+                        style={[
+                          styles.optionButton,
+                          {
+                            backgroundColor:
+                              selectedOption === option.name
+                                ? data.details.styling["csatSelectedOptionBackgroundColor"]
+                                : data.details.styling["csatOptionBoxColour"],
+                            borderColor:
+                              selectedOption === option.name
+                                ? data.details.styling["csatSelectedOptionStrokeColor"]
+                                : data.details.styling["csatOptionStrokeColor"],
+                          },
+                        ]}
+                        onPress={() => setSelectedOption(option.name)}
+                      >
+                        <Text
                           style={[
-                            styles.optionButton,
+                            styles.optionText,
                             {
-                              backgroundColor:
+                              color:
                                 selectedOption === option.name
-                                  ? data.details.styling["csatSelectedOptionBackgroundColor"]
-                                  : data.details.styling["csatOptionBoxColour"],
-                              borderColor:
-                                selectedOption === option.name
-                                  ? data.details.styling["csatSelectedOptionStrokeColor"]
-                                  : data.details.styling["csatOptionStrokeColor"],
+                                  ? data.details.styling["csatSelectedOptionTextColor"]
+                                  : data.details.styling["csatOptionTextColour"],
                             },
                           ]}
-                          onPress={() => setSelectedOption(option.name)}
                         >
-                          <Text
-                            style={[
-                              styles.optionText,
-                              {
-                                color:
-                                  selectedOption === option.name
-                                    ? data.details.styling["csatSelectedOptionTextColor"]
-                                    : data.details.styling["csatOptionTextColour"],
-                              },
-                            ]}
-                          >
-                            {option.name}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-
-                      <TextInput
-                        style={[styles.input, {color: data.details.styling["csatAdditionalTextColor"]}]}
-                        value={additionalComments}
-                        onChangeText={setAdditionalComments}
-                        placeholder="Your feedback"
-                        placeholderTextColor={data.details.styling.csatDescriptionTextColor}
-                      />
-
-                      <TouchableOpacity
-                        style={[styles.submitButton, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
-                        onPress={
-                          handleSubmitFeedback
-                        }
-                      >
-                        <Text style={[styles.submitText, {color: data.details.styling["csatCtaTextColor"]}]}>
-                          Submit
+                          {option.name}
                         </Text>
                       </TouchableOpacity>
-                    </View>
-                  )}
-                </View>
-              )}
-            </ScrollView>
-          </View>
+                    ))}
+
+                    <TextInput
+                      style={[styles.input, {color: data.details.styling["csatAdditionalTextColor"]}]}
+                      value={additionalComments}
+                      onChangeText={setAdditionalComments}
+                      placeholder="Your feedback"
+                      placeholderTextColor={data.details.styling.csatDescriptionTextColor}
+                    />
+
+                    <TouchableOpacity
+                      style={[styles.submitButton, {backgroundColor: data.details.styling["csatCtaBackgroundColor"]}]}
+                      onPress={
+                        handleSubmitFeedback
+                      }
+                    >
+                      <Text style={[styles.submitText, {color: data.details.styling["csatCtaTextColor"]}]}>
+                        Submit
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+            )}
+          </ScrollView>
         </View>
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    // position: 'absolute', // Remove absolute positioning
+    position: 'absolute',
     left: 10,
     right: 10,
   },
