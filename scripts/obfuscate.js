@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const {minify} = require('terser');
 
+const isPublishing = process.env.NODE_ENV === 'production';
+
 const libDir = path.join(__dirname, '..', 'lib');
 
 const terserOptions = {
@@ -101,7 +103,7 @@ const terserOptions = {
     negate_iife: false,
     properties: false, // Don't optimize properties
     pure_getters: false, // Don't assume getters are pure
-    pure_funcs: [], // Don't mark any functions as pure
+    pure_funcs: isPublishing ? ['console.log'] : [], // Only remove console.log in production
     reduce_funcs: false, // Don't reduce function calls
     reduce_vars: false, // Don't reduce variables (can break imports)
     sequences: true,

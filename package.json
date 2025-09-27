@@ -49,8 +49,9 @@
     "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build lib",
     "build": "bob build",
     "obfuscate": "node scripts/obfuscate.js",
+    "obfuscate:prod": "cross-env NODE_ENV=production node scripts/obfuscate.js",
     "prepare": "npm run build && npm run obfuscate",
-    "release": "release-it"
+    "release": "npm run build && npm run obfuscate:prod && release-it"
   },
   "keywords": [
     "react-native",
@@ -84,6 +85,7 @@
     "@types/jest": "^29.5.5",
     "@types/react": "^19.1.12",
     "commitlint": "^17.0.2",
+    "cross-env": "^10.0.0",
     "del-cli": "^5.1.0",
     "eslint": "^8.51.0",
     "eslint-config-prettier": "^9.0.0",

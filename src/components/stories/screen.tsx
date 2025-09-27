@@ -1,4 +1,4 @@
-import { SetStateAction, useEffect, useRef, useState } from "react";
+import {SetStateAction, useEffect, useRef, useState} from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -13,10 +13,10 @@ import {
   View,
 } from "react-native";
 import Video from "react-native-video";
-import { CampaignStorySlide } from "../../domain/sdk/types";
-import { StoryData } from "./types";
+import {CampaignStorySlide} from "../../domain/sdk/types";
+import {StoryData} from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
-import checkForImage from "../../domain/actions/checkForImage";
+import checkForCache from "../../domain/actions/checkForCache";
 
 const closeImage = require("../../assets/images/close.png");
 const shareImage = require("../../assets/images/share.png");
@@ -26,9 +26,9 @@ interface StoriesScreenProps {
   onClose: () => void;
 }
 
-export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
+export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
 
-  const { height, width } = Dimensions.get("window");
+  const {height, width} = Dimensions.get("window");
 
   const [content, setContent] = useState<CampaignStorySlide[]>([]);
   const [currentGroupIndex, setCurrentGroupIndex] = useState(0);
@@ -45,6 +45,17 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
 
   const [isVideoCached, setIsVideoCached] = useState<boolean>(false);
   const [isImageCached, setIsImageCached] = useState(false);
+
+  useEffect(() => {
+    // go through the content and ensure all are cached and if not, cache them
+    content.forEach((item) => {
+      if (item.video) {
+        void checkForCache(item.video, 'video');
+      } else if (item.image) {
+        void checkForCache(item.image, 'image');
+      }
+    });
+  }, [content]);
 
 
   useEffect(() => {
@@ -77,14 +88,16 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
 
     if (content[current]?.video) {
       setIsVideoLoading(true);
-      void checkForImage(content[current].video, (path) => {
-        setCachedVideoPath(`file://${path}`);
+      checkForCache(content[current].video).then((result) => {
+        if (!result) return;
+        setCachedVideoPath(result.path);
         setIsVideoCached(true);
       });
     } else if (content[current]?.image) {
       setIsImageLoading(true);
-      void checkForImage(content[current].image, (path) => {
-        setCachedImagePath(`file://${path}`);
+      checkForCache(content[current].image).then((result) => {
+        if (!result) return;
+        setCachedImagePath(result.path);
         setIsImageCached(true);
       });
     }
@@ -153,7 +166,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       toValue: 1,
       duration: duration,
       useNativeDriver: false,
-    }).start(({ finished }) => {
+    }).start(({finished}) => {
       if (finished) {
         next();
       }
@@ -175,7 +188,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
         nextGroupIndex < params!.slideData.details.length &&
         (!params!.slideData.details[nextGroupIndex]?.slides ||
           params!.slideData.details[nextGroupIndex]?.slides.length === 0)
-      ) {
+        ) {
         nextGroupIndex++;
       }
 
@@ -204,7 +217,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
         prevGroupIndex >= 0 &&
         (!params!.slideData.details[prevGroupIndex]?.slides ||
           params!.slideData.details[prevGroupIndex]?.slides.length === 0)
-      ) {
+        ) {
         prevGroupIndex--;
       }
 
@@ -242,8 +255,8 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
 
   if (!params) {
     return (
-      <View style={{ backgroundColor: "black" }}>
-        <Text style={{ color: "white", fontSize: 14 }}>No data available</Text>
+      <View style={{backgroundColor: "black"}}>
+        <Text style={{color: "white", fontSize: 14}}>No data available</Text>
       </View>
     );
   }
@@ -279,13 +292,13 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
                 }}
               >
 
-                {!isImageCached && (<ActivityIndicator size="large" color="white" />)}
+                {!isImageCached && (<ActivityIndicator size="large" color="white"/>)}
               </View>
             )}
 
             {/* Image - only visible after loading */}
             {cachedImagePath && (<Image
-              source={{ uri: cachedImagePath }}
+              source={{uri: cachedImagePath}}
               onLoadStart={() => setIsImageLoading(true)}
               onLoadEnd={() => {
                 setIsImageLoading(false);
@@ -324,13 +337,13 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
                   backgroundColor: "black",
                 }}
               >
-                {!isVideoCached && (<ActivityIndicator size="large" color="white" />)}
+                {!isVideoCached && (<ActivityIndicator size="large" color="white"/>)}
               </View>
             )}
 
             {/* Hidden video component for loading - only visible after loading */}
             {cachedVideoPath && (<Video
-              source={{ uri: cachedVideoPath }}
+              source={{uri: cachedVideoPath}}
               style={{
                 height: "100%",
                 width: width,
@@ -434,7 +447,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
               params.slideData.details[currentGroupIndex] &&
               params.slideData.details[currentGroupIndex].thumbnail && (
                 <Image
-                  source={{ uri: params?.slideData?.details[currentGroupIndex].thumbnail }}
+                  source={{uri: params?.slideData?.details[currentGroupIndex].thumbnail}}
                   style={{
                     width: 40,
                     height: 40,
@@ -525,11 +538,11 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
         }}
       >
         <TouchableOpacity
-          style={{ width: "50%", height: "100%" }}
+          style={{width: "50%", height: "100%"}}
           onPress={previous}
         />
         <TouchableOpacity
-          style={{ width: "50%", height: "100%" }}
+          style={{width: "50%", height: "100%"}}
           onPress={next}
         />
       </View>

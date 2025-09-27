@@ -11,7 +11,7 @@ import {
 // import LottieView from "lottie-react-native";
 import useCampaigns from "../domain/actions/useCampaigns";
 import {CampaignModal} from "../domain/sdk/types";
-import checkForImage from "../domain/actions/checkForImage";
+import checkForCache from "../domain/actions/checkForCache";
 import trackEvent from "../domain/actions/trackEvent";
 
 export default function Modal() {
@@ -19,9 +19,7 @@ export default function Modal() {
   const [imagePath, setImagePath] = useState<string | null>(null);
 
   const [modalHeight, setModalHeight] = useState<number>(200);
-//   const { width, height } = Dimensions.get("window");
 
-  // Find modal campaign data
   const data = useCampaigns<CampaignModal>("MOD");
 
   const modalDetails = data?.details || null;
@@ -39,22 +37,16 @@ export default function Modal() {
   useEffect(() => {
     if (data?.id && modalDetails && imageUrl) {
       setIsModalVisible(true);
-    void trackEvent("viewed", data.id)
+      void trackEvent("viewed", data.id)
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        void checkForImage(imageUrl, (path) => {
-          setImagePath(path);
-          Image.getSize(
-          `file://${path}`,
-          (imgWidth, imgHeight) => {
-            const aspectRatio = imgHeight / imgWidth;
-            setModalHeight(modalSize * aspectRatio);
-          },
-          (error) => {
-            console.error("Failed to get image size:", error);
+        checkForCache(imageUrl).then((result) => {
+          if (!result) return;
+          setImagePath(result.path);
+          if (result.ratio) {
+            setModalHeight(modalSize * result.ratio);
           }
-        );
         });
       }
     }
@@ -78,7 +70,7 @@ export default function Modal() {
   // Handle modal content click
   const handleModalClick = () => {
     if (data?.id) {
-    void trackEvent("clicked", data.id)
+      void trackEvent("clicked", data.id)
     }
 
     const link = modal?.link;
@@ -105,33 +97,47 @@ export default function Modal() {
     };
 
     switch (mediaType) {
-    //   case "lottie":
-    //     return (
-    //       <LottieView
-    //         source={{ uri: imageUrl }}
-    //         autoPlay
-    //         loop
-    //         style={mediaStyle}
-    //         resizeMode="contain"
-    //       />
-    //     );
+      //   case "lottie":
+      //     return (
+      //       <LottieView
+      //         source={{ uri: imageUrl }}
+      //         autoPlay
+      //         loop
+      //         style={mediaStyle}
+      //         resizeMode="contain"
+      //       />
+      //     );
 
       case "gif":
       case "image":
       default:
-        if (!imagePath) return null;
-
-        const imageSource = imagePath?.startsWith("file://")
-          ? { uri: imagePath }
-          : imagePath?.startsWith("http")
-            ? { uri: imagePath }
-            : { uri: `file://${imagePath}` };
+        if (!imagePath) {
+          return null
+        }
 
         return (
           <Image
-            source={imageSource}
+            source={{uri: imagePath}}
             style={[mediaStyle, styles.mediaContent]}
             resizeMode="contain"
+            onError={(e) => {
+              console.error("Failed to load image:", e.nativeEvent.error);
+            }}
+            onLoad={
+              (e) => {
+                console.log("Image loaded successfully", e);
+              }
+            }
+            onLoadEnd={
+              () => {
+                console.log("Image load ended");
+              }
+            }
+            onPartialLoad={
+              () => {
+                console.log("Image partial load");
+              }
+            }
           />
         );
     }
@@ -153,7 +159,7 @@ export default function Modal() {
         <View
           style={[
             styles.overlay,
-            { backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})` }
+            {backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})`}
           ]}
         >
           <View style={styles.modalContainer}>
