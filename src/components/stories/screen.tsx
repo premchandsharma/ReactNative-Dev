@@ -1,5 +1,6 @@
 import { SetStateAction, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Image,
@@ -15,6 +16,7 @@ import Video from "react-native-video";
 import { CampaignStorySlide } from "../../domain/sdk/types";
 import { StoryData } from "./types";
 import trackEvent from "../../domain/actions/trackEvent";
+import checkForImage from "../../domain/actions/checkForImage";
 
 const closeImage = require("../../assets/images/close.png");
 const shareImage = require("../../assets/images/share.png");
@@ -33,8 +35,16 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
   const [current, setCurrent] = useState(0);
   const [currentStorySlide, setCurrentStorySlide] = useState(0);
   const [videoDuration, setVideoDuration] = useState(5);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(false);
 
   const [mute, setMute] = useState(false);
+
+  const [cachedImagePath, setCachedImagePath] = useState<string | null>(null);
+  const [cachedVideoPath, setCachedVideoPath] = useState<string | null>(null);
+
+  const [isVideoCached, setIsVideoCached] = useState<boolean>(false);
+  const [isImageCached, setIsImageCached] = useState(false);
 
 
   useEffect(() => {
@@ -47,25 +57,69 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
     console.log(videoDuration);
   }, [params]);
 
+  useEffect(() => {
+    // Reset loading states when content changes
+    setIsVideoLoading(false);
+    setIsImageLoading(false);
+
+    if (content[current]?.video) {
+      setIsVideoLoading(true);
+    } else if (content[current]?.image) {
+      setIsImageLoading(true);
+    }
+  }, [current, content]);
+
+  useEffect(() => {
+    setIsVideoLoading(false);
+    setIsImageLoading(false);
+    setCachedImagePath(null);
+    setCachedVideoPath(null);
+
+    if (content[current]?.video) {
+      setIsVideoLoading(true);
+      void checkForImage(content[current].video, (path) => {
+        setCachedVideoPath(`file://${path}`);
+        setIsVideoCached(true);
+      });
+    } else if (content[current]?.image) {
+      setIsImageLoading(true);
+      void checkForImage(content[current].image, (path) => {
+        setCachedImagePath(`file://${path}`);
+        setIsImageCached(true);
+      });
+    }
+  }, [current, content]);
+
   const loadStoryGroup = (groupIndex: number) => {
     if (!params?.slideData?.details[groupIndex]) {
       close();
       return;
     }
 
-    const slides = params.slideData.details[groupIndex].slides;
+    const slides = params.slideData.details[groupIndex].slides || [];
+
+    if (slides.length === 0) {
+      // If this group has no slides, jump to the next one
+      const nextGroupIndex = groupIndex + 1;
+      if (nextGroupIndex < params.slideData.details.length) {
+        loadStoryGroup(nextGroupIndex);
+      } else {
+        close();
+      }
+      return;
+    }
+
     const transformedData = slides.map((storySlide) => ({
       ...storySlide,
       finish: 0,
     }));
 
-    // Remove this line if needed if the progress does not works properly
     progress.setValue(0);
-
     setContent(transformedData);
     setCurrent(0);
     setCurrentStorySlide(0);
   };
+
 
   // Share function
   const shareContent = async () => {
@@ -116,8 +170,15 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       setCurrent(current + 1);
       progress.setValue(0);
     } else {
-      // Move to next story group
-      const nextGroupIndex = currentGroupIndex + 1;
+      let nextGroupIndex = currentGroupIndex + 1;
+      while (
+        nextGroupIndex < params!.slideData.details.length &&
+        (!params!.slideData.details[nextGroupIndex]?.slides ||
+          params!.slideData.details[nextGroupIndex]?.slides.length === 0)
+      ) {
+        nextGroupIndex++;
+      }
+
       if (nextGroupIndex < params!.slideData.details.length) {
         setCurrentGroupIndex(nextGroupIndex);
         loadStoryGroup(nextGroupIndex);
@@ -126,6 +187,7 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       }
     }
   };
+
 
   const previous = () => {
     if (current > 0) {
@@ -136,16 +198,25 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       setContent(tempData);
       progress.setValue(0);
       setCurrent(current - 1);
-    } else if (currentGroupIndex > 0) {
-      // Move to previous story group
-      const prevGroupIndex = currentGroupIndex - 1;
-      setCurrentGroupIndex(prevGroupIndex);
-      // const prevGroupSlides = params!.slideData.details[prevGroupIndex].slides;
-      loadStoryGroup(prevGroupIndex);
-      // setCurrent(prevGroupSlides.length - 1);
-      setCurrent(0);
+    } else {
+      let prevGroupIndex = currentGroupIndex - 1;
+      while (
+        prevGroupIndex >= 0 &&
+        (!params!.slideData.details[prevGroupIndex]?.slides ||
+          params!.slideData.details[prevGroupIndex]?.slides.length === 0)
+      ) {
+        prevGroupIndex--;
+      }
+
+      if (prevGroupIndex >= 0) {
+        setCurrentGroupIndex(prevGroupIndex);
+        loadStoryGroup(prevGroupIndex);
+      } else {
+        close();
+      }
     }
   };
+
 
   const close = () => {
     console.log("Close function called");
@@ -187,45 +258,111 @@ export default function StoriesScreen({ params, onClose }: StoriesScreenProps) {
       }}
       {...panResponder.panHandlers} // Attach PanResponder handlers
     >
+      {/* Image Content */}
       {content &&
         content.length !== 0 &&
         typeof content[current]?.image === "string" &&
         content[current]?.image !== "" && (
-          <Image
-            source={{ uri: content[current]?.image! }}
-            onLoadEnd={() => {
-              progress.setValue(0);
-              start(5000); // Image lasts 5 seconds
-            }}
-            style={{
-              height: "100%",
-              width: width,
-              resizeMode: "contain",
-              top: 0,
-            }}
-          />
+          <>
+            {/* Show loading indicator while image is loading */}
+            {isImageLoading && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "black",
+                }}
+              >
+
+                {!isImageCached && (<ActivityIndicator size="large" color="white" />)}
+              </View>
+            )}
+
+            {/* Image - only visible after loading */}
+            {cachedImagePath && (<Image
+              source={{ uri: cachedImagePath }}
+              onLoadStart={() => setIsImageLoading(true)}
+              onLoadEnd={() => {
+                setIsImageLoading(false);
+                progress.setValue(0);
+                start(5000); // Image lasts 5 seconds
+              }}
+              onError={() => setIsImageLoading(false)}
+              style={{
+                height: "100%",
+                width: width,
+                resizeMode: "contain",
+                top: 0,
+                opacity: isImageLoading ? 0 : 1
+              }}
+            />)}
+          </>
         )}
+
+      {/* Video Content */}
       {content &&
         content.length !== 0 &&
         typeof content[current]?.video === "string" &&
         content[current]?.video !== "" && (
-          <Video
-            source={{ uri: content[current]?.video! }}
-            style={{ height: "100%", width: width }}
-            resizeMode="contain"
-            muted={mute}
-            controls={false}
-            onLoad={(data: { duration: SetStateAction<number>; }) => {
-              console.log("Video loaded with duration:", data.duration);
-              setVideoDuration(data.duration);
-              progress.setValue(0);
-              // @ts-ignore
-              start(data.duration * 1000); // Start based on video duration
-            }}
-            onError={(error) => console.error("Video error:", error)}
-            onEnd={next} // Move to next content when video ends
-            paused={false}
-          />
+          <>
+            {/* Show loading indicator while video is loading */}
+            {isVideoLoading && (
+              <View
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  backgroundColor: "black",
+                }}
+              >
+                {!isVideoCached && (<ActivityIndicator size="large" color="white" />)}
+              </View>
+            )}
+
+            {/* Hidden video component for loading - only visible after loading */}
+            {cachedVideoPath && (<Video
+              source={{ uri: cachedVideoPath }}
+              style={{
+                height: "100%",
+                width: width,
+                opacity: isVideoLoading ? 0 : 1
+              }}
+              resizeMode="contain"
+              muted={mute}
+              controls={false}
+              disableFocus={true}
+              ignoreSilentSwitch="ignore"
+              playInBackground={false}
+              preventsDisplaySleepDuringVideoPlayback={true}
+              onLoadStart={() => {
+                console.log("Video loading started");
+                setIsVideoLoading(true);
+              }}
+              onLoad={(data: { duration: SetStateAction<number>; }) => {
+                console.log("Video loaded with duration:", data.duration);
+                setVideoDuration(data.duration);
+                setIsVideoLoading(false);
+                progress.setValue(0);
+                // @ts-ignore
+                start(data.duration * 1000); // Start based on video duration
+              }}
+              onError={(error) => {
+                console.error("Video error:", error);
+                setIsVideoLoading(false);
+              }}
+              onEnd={next} // Move to next content when video ends
+              paused={isVideoLoading} // Pause video while loading
+            />)}
+          </>
         )}
 
       <View
