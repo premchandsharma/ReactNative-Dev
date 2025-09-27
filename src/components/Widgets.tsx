@@ -60,38 +60,22 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
     if (!data?.details?.widget_images) return;
 
     const cacheImages = async () => {
-      const cachedImagePromises = data.details.widget_images.map((item) =>
-        new Promise<CachedWidgetImage>((resolve) => {
-          checkForImage(item.image, (cachedPath) => {
-            resolve({
-              ...item,
-              cachedImagePath: cachedPath
-            });
-          });
-        })
-      );
+      let ratio: number | null = null;
+      const cachedImagePromises = data.details.widget_images.map(async (item) => {
+        const result = await checkForImage(item.image);
+        if (!ratio && result?.ratio) {
+          ratio = result.ratio;
+          setWidgetHeight(contentWidth * ratio);
+        }
+        return {
+          ...item,
+          cachedImagePath: result?.path
+        };
+      });
 
       try {
         const cachedImageResults = await Promise.all(cachedImagePromises);
         setCachedImages(cachedImageResults);
-
-        // Calculate widget height using the first cached image
-        if (cachedImageResults[0]?.cachedImagePath) {
-          Image.getSize(
-            `file://${cachedImageResults[0].cachedImagePath}`,
-            (imgWidth, imgHeight) => {
-              const aspectRatio = imgHeight / imgWidth;
-              setWidgetHeight(contentWidth * aspectRatio);
-              setImagesLoaded(true);
-            },
-            (error) => {
-              console.error("Failed to get image size:", error);
-              setImagesLoaded(true); // Set to true even on error to avoid infinite loading
-            }
-          );
-        } else {
-          setImagesLoaded(true);
-        }
 
         // Set styling properties
         if (data.details.styling) {
@@ -106,11 +90,12 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
         }
       } catch (error) {
         console.error("Error caching images:", error);
+      } finally {
         setImagesLoaded(true);
       }
     };
 
-    cacheImages();
+    void cacheImages();
   }, [data, contentWidth]);
 
   const extendedImages = useMemo(() => {
@@ -170,26 +155,26 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
     if (data && !trackedImpressionsRef.current.includes(widget_image_id)) {
       console.log(`Tracking impression for: ${widget_image_id}`);
       trackedImpressionsRef.current.push(widget_image_id);
-      void trackEvent("viewed", data.id, { "widget_image": widget_image_id })
+      void trackEvent("viewed", data.id, {"widget_image": widget_image_id})
     } else {
       console.log(`Impression already tracked for: ${widget_image_id}`);
     }
   };
 
   const handleViewableItemsChanged = ({
-    viewableItems,
-  }: {
+                                        viewableItems,
+                                      }: {
     viewableItems: { item: CachedWidgetImage }[];
   }) => {
-    viewableItems.forEach(({ item }) => {
+    viewableItems.forEach(({item}) => {
       trackImpression(item.id);
     });
   };
 
-  const renderFullWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
+  const renderFullWidthItem = ({item, index}: { item: CachedWidgetImage; index: number }) => {
     const imageSource = item.cachedImagePath
-      ? { uri: `file://${item.cachedImagePath}` }
-      : { uri: item.image }; // Fallback to original URL if caching failed
+      ? {uri: item.cachedImagePath}
+      : {uri: item.image}; // Fallback to original URL if caching failed
 
     return (
       <View
@@ -203,7 +188,7 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
           activeOpacity={1}
           onPress={() => {
             if (data && item.link) {
-              void trackEvent("clicked", data.id, { "widget_image": item.id })
+              void trackEvent("clicked", data.id, {"widget_image": item.id})
               void Linking.openURL(item.link);
             }
           }}
@@ -225,13 +210,13 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
     );
   };
 
-  const renderHalfWidthItem = ({ item, index }: { item: CachedWidgetImage; index: number }) => {
+  const renderHalfWidthItem = ({item, index}: { item: CachedWidgetImage; index: number }) => {
     const halfItemWidth = contentWidth * 0.455;
     const halfItemMargin = contentWidth * 0.03;
 
     const imageSource = item.cachedImagePath
-      ? { uri: `file://${item.cachedImagePath}` }
-      : { uri: item.image }; // Fallback to original URL if caching failed
+      ? {uri: item.cachedImagePath}
+      : {uri: item.image}; // Fallback to original URL if caching failed
 
     return (
       <View
@@ -245,7 +230,7 @@ export default function Widgets({leftPadding = 0, rightPadding = 0, position}: W
           activeOpacity={1}
           onPress={() => {
             if (data && item.link) {
-              void trackEvent("clicked", data.id, { "widget_image": item.id })
+              void trackEvent("clicked", data.id, {"widget_image": item.id})
               void Linking.openURL(item.link);
             }
           }}

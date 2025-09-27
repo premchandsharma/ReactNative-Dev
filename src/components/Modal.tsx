@@ -39,22 +39,16 @@ export default function Modal() {
   useEffect(() => {
     if (data?.id && modalDetails && imageUrl) {
       setIsModalVisible(true);
-    void trackEvent("viewed", data.id)
+      void trackEvent("viewed", data.id)
 
       // Cache image for non-lottie media
       if (mediaType !== "lottie") {
-        void checkForImage(imageUrl, (path) => {
-          setImagePath(path);
-          Image.getSize(
-          `file://${path}`,
-          (imgWidth, imgHeight) => {
-            const aspectRatio = imgHeight / imgWidth;
-            setModalHeight(modalSize * aspectRatio);
-          },
-          (error) => {
-            console.error("Failed to get image size:", error);
+        checkForImage(imageUrl).then((result) => {
+          if (!result) return;
+          setImagePath(result.path);
+          if (result.ratio) {
+            setModalHeight(modalSize * result.ratio);
           }
-        );
         });
       }
     }
@@ -78,7 +72,7 @@ export default function Modal() {
   // Handle modal content click
   const handleModalClick = () => {
     if (data?.id) {
-    void trackEvent("clicked", data.id)
+      void trackEvent("clicked", data.id)
     }
 
     const link = modal?.link;
@@ -105,31 +99,25 @@ export default function Modal() {
     };
 
     switch (mediaType) {
-    //   case "lottie":
-    //     return (
-    //       <LottieView
-    //         source={{ uri: imageUrl }}
-    //         autoPlay
-    //         loop
-    //         style={mediaStyle}
-    //         resizeMode="contain"
-    //       />
-    //     );
+      //   case "lottie":
+      //     return (
+      //       <LottieView
+      //         source={{ uri: imageUrl }}
+      //         autoPlay
+      //         loop
+      //         style={mediaStyle}
+      //         resizeMode="contain"
+      //       />
+      //     );
 
       case "gif":
       case "image":
       default:
         if (!imagePath) return null;
 
-        const imageSource = imagePath?.startsWith("file://")
-          ? { uri: imagePath }
-          : imagePath?.startsWith("http")
-            ? { uri: imagePath }
-            : { uri: `file://${imagePath}` };
-
         return (
           <Image
-            source={imageSource}
+            source={{uri: imagePath}}
             style={[mediaStyle, styles.mediaContent]}
             resizeMode="contain"
           />
@@ -153,7 +141,7 @@ export default function Modal() {
         <View
           style={[
             styles.overlay,
-            { backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})` }
+            {backgroundColor: `rgba(0, 0, 0, ${backgroundOpacity})`}
           ]}
         >
           <View style={styles.modalContainer}>

@@ -23,16 +23,18 @@ export default function Floater() {
     }
     // void checkForImage(data.details.image, setImagePath);
     void trackEvent("viewed", data.id)
-    void checkForImage(data.details.image, (path) => {
-            setImagePath(path);
-    
-            if (data.details.styling) {
-              setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
-              setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
-              setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
-              setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
-            }
-          });
+    checkForImage(data.details.image).then((result) => {
+      if (!result) return;
+
+      setImagePath(result.path);
+
+      if (data.details.styling) {
+        setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
+        setBottomRightRadius(parseInt(data.details.styling["bottomRightRadius"] || "0"));
+        setTopLeftRadius(parseInt(data.details.styling["topLeftRadius"] || "0"));
+        setTopRightRadius(parseInt(data.details.styling["topRightRadius"] || "0"));
+      }
+    });
   }, [data]);
 
   return (
@@ -70,10 +72,14 @@ export default function Floater() {
               borderTopRightRadius: topRightRadius,
             }}
           >
-            <Image
-              source={{uri: `file://${imagePath}`}}
-              style={styles.image}
-            />
+            {
+              imagePath && (
+                <Image
+                  source={{uri: imagePath}}
+                  style={styles.image}
+                />
+              )
+            }
           </TouchableOpacity>
         </View>
       )}

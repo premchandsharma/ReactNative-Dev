@@ -8,7 +8,7 @@ import trackEvent from "../domain/actions/trackEvent";
 import usePadding from "../domain/actions/usePadding";
 
 export default function Banner() {
-  const { width } = Dimensions.get("window");
+  const {width} = Dimensions.get("window");
 
   const [isBannerVisible, setIsBannerVisible] = useState(true);
   const [imagePath, setImagePath] = useState<string | null>(null);
@@ -35,8 +35,10 @@ export default function Banner() {
   useEffect(() => {
     if (data && data.id) {
       void trackEvent("viewed", data.id);
-      void checkForImage(data.details.image, (path) => {
-        setImagePath(path);
+      checkForImage(data.details.image).then((result) => {
+        if (!result) return;
+
+        setImagePath(result.path);
 
         if (data.details.styling) {
           setBottomLeftRadius(parseInt(data.details.styling["bottomLeftRadius"] || "0"));
@@ -50,18 +52,9 @@ export default function Banner() {
         }
 
         const bannerWidth = width - (marginLeft + marginRight);
-
-        // get natural size of the image
-        Image.getSize(
-          `file://${path}`,
-          (imgWidth, imgHeight) => {
-            const aspectRatio = imgHeight / imgWidth;
-            setBannerHeight(bannerWidth * aspectRatio);
-          },
-          (error) => {
-            console.error("Failed to get image size:", error);
-          }
-        );
+        if (result.ratio) {
+          setBannerHeight(bannerWidth * result.ratio);
+        }
       });
     }
   }, [data, width]);
@@ -101,8 +94,9 @@ export default function Banner() {
               },
             ]}
           >
+            {imagePath &&
               <Image
-                source={{ uri: `file://${imagePath}` }}
+                source={{uri: imagePath}}
                 style={{
                   width: bannerWidth,
                   height: bannerHeight,
@@ -113,6 +107,7 @@ export default function Banner() {
                   borderBottomLeftRadius: bottomLeftRadius,
                 }}
               />
+            }
             {enableCloseButton && (
               <TouchableOpacity
                 onPress={closeBanner}

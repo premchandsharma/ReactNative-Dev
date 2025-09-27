@@ -18,7 +18,7 @@ import {CampaignBottomSheet} from "../domain/sdk/types";
 import checkForImage from "../domain/actions/checkForImage";
 import trackEvent from "../domain/actions/trackEvent";
 
-const { height: SCREEN_HEIGHT } = Dimensions.get("window");
+const {height: SCREEN_HEIGHT} = Dimensions.get("window");
 const DRAG_THRESHOLD = 50;
 
 export default function BottomSheet() {
@@ -117,12 +117,14 @@ export default function BottomSheet() {
   // Track impression and show bottom sheet
   useEffect(() => {
     if (campaignData?.id && bottomSheetDetails) {
-    void trackEvent("viewed", campaignData.id)
+      void trackEvent("viewed", campaignData.id)
 
       // Cache image if exists
       if (imageElement?.url) {
-        void checkForImage(imageElement.url, cachedPath => {
-          setImageCache(prev => ({ ...prev, [imageElement.url!]: cachedPath }));
+        checkForImage(imageElement.url).then((result) => {
+          if (result?.path) {
+            setImageCache(prev => ({...prev, [imageElement.url!]: result.path}));
+          }
         });
       }
 
@@ -182,18 +184,24 @@ export default function BottomSheet() {
   // Get text alignment
   const getTextAlign = (alignment?: string): "left" | "center" | "right" => {
     switch (alignment) {
-      case "left": return "left";
-      case "right": return "right";
-      default: return "center";
+      case "left":
+        return "left";
+      case "right":
+        return "right";
+      default:
+        return "center";
     }
   };
 
   // Get justify content for alignment
   const getJustifyContent = (alignment?: string) => {
     switch (alignment) {
-      case "left": return "flex-start";
-      case "right": return "flex-end";
-      default: return "center";
+      case "left":
+        return "flex-start";
+      case "right":
+        return "flex-end";
+      default:
+        return "center";
     }
   };
 
@@ -201,12 +209,6 @@ export default function BottomSheet() {
   const renderImageElement = (element: any) => {
     const cachedPath = imageCache[element.url];
     if (!cachedPath) return null;
-
-    const imageSource = cachedPath.startsWith("file://")
-      ? { uri: cachedPath }
-      : cachedPath.startsWith("http")
-        ? { uri: cachedPath }
-        : { uri: `file://${cachedPath}` };
 
     return (
       <TouchableOpacity
@@ -225,7 +227,7 @@ export default function BottomSheet() {
         ]}
       >
         <Image
-          source={imageSource}
+          source={{uri: cachedPath}}
           style={styles.image}
           resizeMode="cover"
         />
@@ -282,7 +284,7 @@ export default function BottomSheet() {
         )}
 
         {element.titleText && element.descriptionText && (
-          <View style={{ height: spacing }} />
+          <View style={{height: spacing}}/>
         )}
 
         {element.descriptionText && (
@@ -425,7 +427,7 @@ export default function BottomSheet() {
             {
               borderTopLeftRadius: cornerRadius,
               borderTopRightRadius: cornerRadius,
-              transform: [{ translateY: slideAnim }]
+              transform: [{translateY: slideAnim}]
             }
           ]}
           {...panResponder.panHandlers}

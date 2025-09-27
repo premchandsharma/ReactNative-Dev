@@ -69,8 +69,16 @@ export default function Pip() {
   useEffect(() => {
     if (data && data.id) {
       void trackEvent("viewed", data.id)
-      void checkForImage(data.details.small_video, setSmallVideoPath);
-      void checkForImage(data.details.large_video, setLargeVideoPath);
+      checkForImage(data.details.small_video).then((result) => {
+        if (result?.path) {
+          setSmallVideoPath(result.path);
+        }
+      });
+      checkForImage(data.details.large_video).then((result) => {
+        if (result?.path) {
+          setLargeVideoPath(result.path);
+        }
+      });
     }
   }, [data]);
 
