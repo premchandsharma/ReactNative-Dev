@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View} from "react-native";
+import {ActivityIndicator, Animated, Dimensions, Image, Modal, Platform, Pressable, StyleSheet, View} from "react-native";
 import {Gesture, GestureDetector} from "react-native-gesture-handler";
 import Video from "react-native-video";
 import checkForCache from "../../domain/actions/checkForCache";
@@ -44,10 +44,14 @@ export default function Pip() {
   const MIN_Y = Platform.OS === "ios" ? (60) : (20);
 
   const [isPipVisible, setPipVisible] = useState(true);
-  // const [isExpanded, setExpanded] = useState(false);
 
-  const [smallVideoPath, setSmallVideoPath] = useState("");
-  const [largeVideoPath, setLargeVideoPath] = useState("");
+  const [cachedSmallVideoPath, setCachedSmallVideoPath] = useState<string | null>(null);
+  const [cachedLargeVideoPath, setCachedLargeVideoPath] = useState<string | null>(null);
+
+  const [isSmallVideoCached, setIsSmallVideoCached] = useState<boolean>(false);
+  const [isLargeVideoCached, setIsLargeVideoCached] = useState<boolean>(false);
+
+  isLargeVideoCached;
 
   const [mute, setMute] = useState(true);
 
@@ -55,15 +59,13 @@ export default function Pip() {
 
   const initialY = height - (bottomPadding + pipBottomValue)
 
-  const isPlayable = (u?: string) => !!u && (/^https?:\/\//i.test(u) || /^file:\/\//i.test(u));
-  const toFileUri = (p?: string) => (p ? `file://${p.replace(/^file:\/\//, "")}` : "");
-
   const [isVideoLoading, setIsVideoLoading] = useState(false);
 
   // pick local file if available, else fallback to remote
-  const smallSrc = smallVideoPath ? toFileUri(smallVideoPath) : (data?.details.small_video ?? "");
-  const largeSrc = largeVideoPath ? toFileUri(largeVideoPath) : (data?.details.large_video ?? "");
+  const smallSrc = cachedSmallVideoPath || (data?.details.small_video ?? "");
+  const largeSrc = cachedLargeVideoPath || (data?.details.large_video ?? "");
 
+  const isPlayable = (u?: string) => !!u && (/^https?:\/\//i.test(u) || /^file:\/\//i.test(u));
 
   const pan = useRef(
     new Animated.ValueXY({
@@ -79,16 +81,34 @@ export default function Pip() {
   useEffect(() => {
     if (data && data.id) {
       void trackEvent("viewed", data.id)
-      checkForCache(data.details.small_video).then((result) => {
-        if (result?.path) {
-          setSmallVideoPath(result.path);
-        }
-      });
-      checkForCache(data.details.large_video).then((result) => {
-        if (result?.path) {
-          setLargeVideoPath(result.path);
-        }
-      });
+      
+      // Reset states when new data comes in
+      setIsVideoLoading(false);
+      setCachedSmallVideoPath(null);
+      setCachedLargeVideoPath(null);
+      setIsSmallVideoCached(false);
+      setIsLargeVideoCached(false);
+
+      // Cache small video
+      if (data.details.small_video) {
+        setIsVideoLoading(true);
+        checkForCache(data.details.small_video, 'video').then((result) => {
+          if (result?.path) {
+            setCachedSmallVideoPath(result.path);
+            setIsSmallVideoCached(true);
+          }
+        });
+      }
+
+      // Cache large video
+      if (data.details.large_video) {
+        checkForCache(data.details.large_video, 'video').then((result) => {
+          if (result?.path) {
+            setCachedLargeVideoPath(result.path);
+            setIsLargeVideoCached(true);
+          }
+        });
+      }
     }
   }, [data]);
 
@@ -179,50 +199,59 @@ export default function Pip() {
             }
           >
             <Pressable onPress={expandPip} style={{ flex: 1 }}>
-              {/* {data.details.small_video &&
-                data.details.large_video && (
-                  <Video
-                    repeat={true}
-                    resizeMode="contain"
-                    muted={mute}
-                    controls={false}
-                    source={{
-                      uri: `file://${smallVideoPath}`,
-                    }}
-                    style={{
-                      borderRadius: 15,
-                      position: "absolute",
-                      overflow: "hidden",
-                      top: 0,
-                      left: 0,
-                      bottom: 0,
-                      right: 0,
-                    }}
-                  />
-                )} */}
-              {isPlayable(smallSrc) && (
+              {/* Show loading indicator while video is loading */}
+              {isVideoLoading && (
+                <View
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: "black",
+                    borderRadius: 15,
+                    zIndex: 10,
+                  }}
+                >
+                  {!isSmallVideoCached && <ActivityIndicator size="large" color="white"/>}
+                </View>
+              )}
+
+              {/* Video - only visible after caching */}
+              {cachedSmallVideoPath && isPlayable(smallSrc) && (
                 <Video
                   repeat
                   resizeMode="contain"
                   muted={mute}
                   controls={false}
                   source={{ uri: smallSrc }}
-                  paused={isVideoLoading}                 // ✅ don’t play until loaded
-                  onLoadStart={() => setIsVideoLoading(true)}
-                  onLoad={() => setIsVideoLoading(false)} // ✅ starts playing
-                  onError={(e) => {
+                  paused={isVideoLoading}
+                  onLoadStart={() => {
+                    console.log("PIP video loading started");
+                    setIsVideoLoading(true);
+                  }}
+                  onLoad={() => {
+                    console.log("PIP video loaded");
                     setIsVideoLoading(false);
-                    console.warn("PIP small video error:", e || e);
+                  }}
+                  onError={(e) => {
+                    console.error("PIP small video error:", e);
+                    setIsVideoLoading(false);
                   }}
                   style={{
                     borderRadius: 15,
                     position: "absolute",
                     overflow: "hidden",
-                    top: 0, left: 0, bottom: 0, right: 0,
+                    top: 0, 
+                    left: 0, 
+                    bottom: 0, 
+                    right: 0,
+                    opacity: isVideoLoading ? 0 : 1,
                   }}
                 />
               )}
-
             </Pressable>
 
             <Pressable

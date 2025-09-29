@@ -1,4 +1,4 @@
-import { Dimensions, Image, Linking, Platform, Text, TouchableOpacity, View, } from "react-native";
+import { ActivityIndicator, Dimensions, Image, Linking, Platform, Text, TouchableOpacity, View, } from "react-native";
 import { useState } from "react";
 import Video from "react-native-video";
 import { togglePipVisibility } from '../../domain/actions/pipState';
@@ -17,6 +17,8 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
   const { height, width } = Dimensions.get("window");
 
   const [mute, setMute] = useState(false);
+
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
 
   const minimize = () => {
     // set small pip visible
@@ -44,6 +46,13 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
           source={{
             uri: params.largeVideoUrl
           }}
+          paused={isVideoLoading}  // ✅ Add this
+          onLoadStart={() => setIsVideoLoading(true)}  // ✅ Add this
+          onLoad={() => setIsVideoLoading(false)}  // ✅ Add this
+          onError={(e) => {
+            setIsVideoLoading(false);
+            console.error("PIP large video error:", e);
+          }}
           style={{
             position: "absolute",
             overflow: "hidden",
@@ -51,8 +60,27 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
             left: 0,
             bottom: 0,
             right: 0,
+            opacity: isVideoLoading ? 0 : 1,  // ✅ Add this
           }}
         />
+        
+        {/* Add loading indicator */}
+        {isVideoLoading && (
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "black",
+            }}
+          >
+            <ActivityIndicator size="large" color="white" />
+          </View>
+        )}
       </View>
 
       {/* Close button */}
@@ -131,7 +159,7 @@ export default function PipScreen({ params, onClose, onMinimize }: PipScreenProp
           <Pressable
             style={{
               backgroundColor: params.styling["ctaButtonBackgroundColor"],
-              borderRadius:  parseInt(params.styling["cornerRadius"]!) || 12,
+              borderRadius: parseInt(params.styling["cornerRadius"]!) || 12,
             }}
             onPress={() => {
               if (params.link) {

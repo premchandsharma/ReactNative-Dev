@@ -10,6 +10,7 @@ import {
   Share,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import Video from "react-native-video";
@@ -39,12 +40,17 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
   const [isImageLoading, setIsImageLoading] = useState(false);
 
   const [mute, setMute] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [cachedImagePath, setCachedImagePath] = useState<string | null>(null);
   const [cachedVideoPath, setCachedVideoPath] = useState<string | null>(null);
 
   const [isVideoCached, setIsVideoCached] = useState<boolean>(false);
   const [isImageCached, setIsImageCached] = useState(false);
+
+  const animationRef = useRef<any>(null);
+  const pauseTime = useRef(0);
+  const pressStartTime = useRef(0);
 
   useEffect(() => {
     // go through the content and ensure all are cached and if not, cache them
@@ -162,18 +168,89 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
       }
     }
 
-    Animated.timing(progress, {
+    animationRef.current = Animated.timing(progress, {
       toValue: 1,
       duration: duration,
       useNativeDriver: false,
-    }).start(({finished}) => {
+    });
+
+    animationRef.current.start(({finished}: {finished: boolean}) => {
       if (finished) {
         next();
       }
     });
   };
 
+  const pause = () => {
+    setIsPaused(true);
+    if (animationRef.current) {
+      animationRef.current.stop();
+      // Store current progress value
+      progress.stopAnimation((value: number) => {
+        pauseTime.current = value;
+      });
+    }
+  };
+
+  const resume = (duration: number) => {
+    setIsPaused(false);
+    if (pauseTime.current > 0) {
+      // Calculate remaining duration based on progress
+      const remainingDuration = duration * (1 - pauseTime.current);
+      
+      animationRef.current = Animated.timing(progress, {
+        toValue: 1,
+        duration: remainingDuration,
+        useNativeDriver: false,
+      });
+
+      animationRef.current.start(({finished}: {finished: boolean}) => {
+        if (finished) {
+          next();
+        }
+      });
+    }
+  };
+
+  const handlePressIn = () => {
+    pressStartTime.current = Date.now();
+    const currentDuration = content[current]?.video 
+      ? videoDuration * 1000 
+      : 5000;
+      currentDuration;
+    pause();
+  };
+
+  const handlePressOutLeft = () => {
+    const pressDuration = Date.now() - pressStartTime.current;
+    const currentDuration = content[current]?.video 
+      ? videoDuration * 1000 
+      : 5000;
+    
+    resume(currentDuration);
+    
+    // Only trigger previous if it was a quick tap (less than 200ms)
+    if (pressDuration < 200) {
+      previous();
+    }
+  };
+
+  const handlePressOutRight = () => {
+    const pressDuration = Date.now() - pressStartTime.current;
+    const currentDuration = content[current]?.video 
+      ? videoDuration * 1000 
+      : 5000;
+    
+    resume(currentDuration);
+    
+    // Only trigger next if it was a quick tap (less than 200ms)
+    if (pressDuration < 200) {
+      next();
+    }
+  };
+
   const next = () => {
+    pauseTime.current = 0;
     if (current !== content.length - 1) {
       let tempData = [...content];
       if (tempData[current]) {
@@ -203,6 +280,7 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
 
 
   const previous = () => {
+    pauseTime.current = 0;
     if (current > 0) {
       let tempData = [...content];
       if (tempData[current]) {
@@ -234,6 +312,10 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
   const close = () => {
     console.log("Close function called");
     progress.setValue(0);
+    pauseTime.current = 0;
+    if (animationRef.current) {
+      animationRef.current.stop();
+    }
     onClose();
   };
 
@@ -373,7 +455,7 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
                 setIsVideoLoading(false);
               }}
               onEnd={next} // Move to next content when video ends
-              paused={isVideoLoading} // Pause video while loading
+              paused={isVideoLoading || isPaused} // Pause video while loading or when user pauses
             />)}
           </>
         )}
@@ -537,14 +619,18 @@ export default function StoriesScreen({params, onClose}: StoriesScreenProps) {
           justifyContent: "space-between",
         }}
       >
-        <TouchableOpacity
-          style={{width: "50%", height: "100%"}}
-          onPress={previous}
-        />
-        <TouchableOpacity
-          style={{width: "50%", height: "100%"}}
-          onPress={next}
-        />
+        <TouchableWithoutFeedback
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOutLeft}
+        >
+          <View style={{width: "50%", height: "100%"}} />
+        </TouchableWithoutFeedback>
+        <TouchableWithoutFeedback
+          onPressIn={handlePressIn}
+          onPressOut={handlePressOutRight}
+        >
+          <View style={{width: "50%", height: "100%"}} />
+        </TouchableWithoutFeedback>
       </View>
 
       {content &&

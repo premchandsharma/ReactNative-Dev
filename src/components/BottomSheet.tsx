@@ -572,10 +572,10 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     position: "absolute",
-    top: 16,
-    right: 16,
-    width: 32,
-    height: 32,
+    top: 12,
+    right: 12,
+    width: 28,
+    height: 28,
     borderRadius: 16,
     backgroundColor: "rgba(0, 0, 0, 0.3)",
     justifyContent: "center",
@@ -583,8 +583,8 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   closeIcon: {
-    width: 24,
-    height: 24,
+    width: 12,
+    height: 12,
     tintColor: "white",
   },
 });
