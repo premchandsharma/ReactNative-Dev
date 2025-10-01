@@ -26,7 +26,6 @@ import useAppStorysStore from "./store";
 import {Attributes, SdkState} from "./types";
 
 class AppStorys {
-  public Container = Container;
   private state = SdkState.uninitialized;
 
   public async initialize(
@@ -123,8 +122,6 @@ class AppStorys {
     await trackScreen(screenName, arguments[1] !== false);
   }
 
-  public Screen = Screen;
-
   private async ensureInitialized() {
     if (this.state === SdkState.error) {
       throw new Error('AppStorys initialization failed previously. Please check your credentials and try again.');
@@ -149,6 +146,9 @@ class AppStorys {
       throw new Error('AppStorys not initialized. Call initialize() first.'); // this is a fallback, should not reach here
     }
   }
+
+  public Container = Container;
+  public Screen = Screen;
   public Stories = Stories;
   public StoriesScreen = StoriesScreen;
   public Floater = Floater;
