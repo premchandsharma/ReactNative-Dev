@@ -1,4 +1,4 @@
-import { CampaignTooltips } from "../tooltips/types";
+import {CampaignTooltips} from "../tooltips/types";
 
 export type CampaignFloater = {
   id: string,
@@ -224,3 +224,10 @@ export type Campaign = (CampaignFloater | CampaignStory | CampaignBanner | Campa
     position?: string;
     screen?: string;
   };
+
+export enum SdkState {
+  uninitialized,
+  initializing,
+  initialized,
+  error
+}

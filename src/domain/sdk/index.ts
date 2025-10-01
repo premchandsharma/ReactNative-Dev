@@ -23,11 +23,10 @@ import Measurable from '../capture/Measurable';
 import Screen from "../screen/Screen";
 import Container from "../screen/Container";
 import useAppStorysStore from "./store";
-import {Attributes} from "./types";
+import {Attributes, SdkState} from "./types";
 
 class AppStorys {
-  private isInitializing = false;
-  private isInitialized = false;
+  private state = SdkState.uninitialized;
 
   public async initialize(
     appId: string,
@@ -35,15 +34,22 @@ class AppStorys {
     userId: string,
     attributes?: Attributes
   ) {
-    if (this.isInitialized) {
+    if (this.state === SdkState.initializing) {
+      console.error('AppStorys is already initializing. Please wait for it to complete.');
       return;
     }
 
-    if (this.isInitializing) {
-      throw new Error('Initialization already in progress');
+    if (this.state === SdkState.initialized) {
+      // check if the same creds are being used
+      const state = useAppStorysStore.getState();
+      if (state.appId === appId && state.accountId === accountId && state.userId === userId) {
+        console.warn('AppStorys is already initialized with the same credentials.');
+        return;
+      }
     }
 
-    this.isInitializing = true;
+    this.state = SdkState.initializing;
+    console.log('Initializing AppStorys SDK...');
 
     try {
       const success = await verifyAccount(accountId, appId);
@@ -55,16 +61,17 @@ class AppStorys {
         if (attributes) {
           state.setAttributes(attributes);
         }
-        this.isInitialized = true;
+        this.state = SdkState.initialized;
+        console.log('AppStorys SDK initialized successfully.');
       } else {
-        throw new Error('Account verification failed');
+        this.state = SdkState.error;
+        return Promise.reject(new Error('Account verification failed'));
       }
-    } finally {
-      this.isInitializing = false;
+    } catch (e) {
+      this.state = SdkState.error;
+      return Promise.reject(e);
     }
   }
-
-  public Container = Container;
 
   public async trackUser(attributes?: Attributes) {
     await this.ensureInitialized();
@@ -110,22 +117,38 @@ class AppStorys {
     return setUserProperties(attributes);
   }
 
-  private async ensureInitialized() {
-    // Wait if initialization is in progress
-    while (this.isInitializing) {
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    if (!this.isInitialized) {
-      throw new Error('AppStorys not initialized. Call initialize() first.');
-    }
-  }
-
-  public Screen = Screen;
-
   public async trackScreen(screenName: string) {
     await this.ensureInitialized();
     await trackScreen(screenName, arguments[1] !== false);
   }
+
+  private async ensureInitialized() {
+    if (this.state === SdkState.error) {
+      throw new Error('AppStorys initialization failed previously. Please check your credentials and try again.');
+    } else if (this.state === SdkState.initialized) {
+      return;
+    }
+
+    const startTime = Date.now();
+
+    // Wait if not initialized yet or in the process of initializing
+    console.log('Waiting for AppStorys SDK to initialize...');
+    while (this.state === SdkState.uninitialized || this.state === SdkState.initializing) {
+      // Timeout after 10 seconds for uninitialized state
+      if (this.state === SdkState.uninitialized && Date.now() - startTime > 10000) {
+        throw new Error('AppStorys not initialized within timeout. Call initialize() first.');
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (this.state === SdkState.error) {
+      throw new Error('AppStorys initialization failed. Please check your credentials and try again.');
+    } else if (this.state !== SdkState.initialized) {
+      throw new Error('AppStorys not initialized. Call initialize() first.'); // this is a fallback, should not reach here
+    }
+  }
+
+  public Container = Container;
+  public Screen = Screen;
   public Stories = Stories;
   public StoriesScreen = StoriesScreen;
   public Floater = Floater;

@@ -20,22 +20,22 @@ export default function Overlay({name}: { name: ScreenProviderProps['name'] }) {
   }
 
   return (
-<>
+    <>
       <TooltipConsumer/>
-    <SafeAreaView
-      style={StyleSheet.absoluteFill}
-      pointerEvents="box-none"
-      edges={['top', 'left', 'right', 'bottom']}
-    >
-      <Banner/>
-      <Floater/>
-      <Pip/>
-      <Csat/>
-      <Survey/>
-      <BottomSheet/>
-      <Modal/>
-      <CaptureScreenButton/>
-    </SafeAreaView>
+      <SafeAreaView
+        style={StyleSheet.absoluteFill}
+        pointerEvents="box-none"
+        edges={['top', 'left', 'right', 'bottom']}
+      >
+        <Banner/>
+        <Floater/>
+        <Pip/>
+        <Csat/>
+        <Survey/>
+        <BottomSheet/>
+        <Modal/>
+        <CaptureScreenButton/>
+      </SafeAreaView>
     </>
   );
 }

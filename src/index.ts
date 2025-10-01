@@ -31,6 +31,6 @@ export {
   BottomSheet,
   CaptureScreenButton,
   Measurable,
-  Screen as AppStorysScreen
+  Screen,
 };
-export type {ScreenOptions as AppStorysScreenOptions};
+export type {ScreenOptions};

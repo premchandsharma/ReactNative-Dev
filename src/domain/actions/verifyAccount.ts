@@ -25,7 +25,7 @@ export default async function verifyAccount(accountId: string, appId: string) {
     }
     return false
   } catch (error) {
-    console.error(error);
+    console.error('Error when verifying AppStorys account', error);
     return false
   }
 };

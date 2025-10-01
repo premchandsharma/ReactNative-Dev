@@ -7,7 +7,9 @@ import AppStorys from "../sdk";
 export default function Screen({name, options, children}: ScreenProviderProps) {
   useEffect(() => {
     // @ts-ignore
-    void AppStorys.trackScreen(name, false);
+    void AppStorys.trackScreen(name, false).catch((error) => {
+      console.error(`Failed to track`, name, error);
+    });
   }, [name]);
 
   return (

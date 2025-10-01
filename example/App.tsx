@@ -2,16 +2,8 @@ import React, {useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
-import {AppStorys} from '@appstorys/appstorys-react-native';
 import HomeScreen from './src/HomeScreen';
 import MoreScreen from './src/MoreScreen';
-
-void AppStorys.initialize(
-  "9e1b21a2-350a-4592-918c-2a19a73f249a",
-  "4350bf8e-0c9a-46bd-b953-abb65ab21d11",
-  "nameisprem",
-  // attributes,
-);
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');

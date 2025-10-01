@@ -22,7 +22,7 @@ export default async function trackScreen(screenName: string, emitTrackEvent: bo
         screenTrackingEmitter.emit("screen_tracked", screenName);
       }
 
-      console.log('Initializing trackScreen for', screenName);
+      console.log('Tracking ', screenName);
 
       const response = await fetch('https://users.appstorys.com/track-user', {
         method: 'POST',
@@ -39,14 +39,14 @@ export default async function trackScreen(screenName: string, emitTrackEvent: bo
 
       // Check if response is OK before parsing
       if (!response.ok) {
-        console.error('Failed to initialize trackScreen', response.status, await response.text());
+        console.error('Failed to track', screenName, response.status, await response.text());
         return resolve(null);
       }
 
       const data: TrackScreenConfig = await response.json();
       CaptureService.setup(screenName, data.screen_capture_enabled);
 
-      console.log('Track screen initialized', data);
+      console.log(screenName, 'tracking initialized', data);
 
       client?.disconnect();
       client = new WebSocketClient();
@@ -63,12 +63,12 @@ export default async function trackScreen(screenName: string, emitTrackEvent: bo
         }
       });
     } catch (error) {
-      console.error('Error in trackScreen', error);
+      console.error('Error when tracking', screenName, error);
       resolve(null);
     }
   });
   if (response) {
-    console.log(response);
+    console.log(screenName, response);
 
     CaptureService.setup(screenName, response.metadata.screen_capture_enabled);
 
