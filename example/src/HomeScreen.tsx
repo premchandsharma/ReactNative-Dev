@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Button, ScrollView, Switch, Text, TextInput, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {AppStorys} from '@appstorys/appstorys-react-native';
@@ -6,6 +6,16 @@ import {AppStorys} from '@appstorys/appstorys-react-native';
 export default function HomeScreen() {
   const [switchValue, setSwitchValue] = useState(false);
   const [inputText, setInputText] = useState('');
+
+  useEffect(() => {
+    AppStorys.initialize(
+      "9e1b21a2-350a-4592-918c-2a19a73f249a",
+      "4350bf8e-0c9a-46bd-b953-abb65ab21d11",
+      "nameisprem",
+      // attributes,
+    ).then(() => console.log('AppStorys SDK initialized'))
+      .catch((error) => console.error('Failed to initialize AppStorys SDK:', error));
+  }, []);
 
   return (
     <AppStorys.Screen name="Home Screen React" options={{
